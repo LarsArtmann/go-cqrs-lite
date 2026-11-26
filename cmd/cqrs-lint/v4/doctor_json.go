@@ -25,7 +25,8 @@ func fileExists(path string) bool {
 
 // doctorJSONReport is the machine-readable `doctor --format json` surface:
 // the resolved configuration, the detected feature profile, and — with
-// --audit-suppressions / --prune-suppressions — the suppression audit and fix outcome.
+// --audit-suppressions / --prune-suppressions / --fail-on-stale-suppressions —
+// the suppression audit and fix outcome.
 // sortedOverrideMap renders a severity-override map with SORTED keys.
 // encoding/json/v2 emits map iteration order (unlike v1, which sorted),
 // so an unsorted map made `doctor --format json` byte-nondeterministic —
@@ -101,13 +102,24 @@ func runDoctorJSON(
 	actx *analyzer.AnalysisContext,
 	flags doctorFlags,
 ) error {
-	if flags.AuditSuppressions || flags.Prune {
+	// --fail-on-stale-suppressions implies the audit on the JSON path too. The
+	// report is printed BEFORE the verdict so a failing CI gate still leaves
+	// the audit (the evidence) on stdout; the error carries the exit code.
+	if flags.AuditSuppressions || flags.Prune || flags.FailOnStale {
 		audit, err := buildSuppressionAuditJSON(ctx, cfg, actx, flags.Prune, flags.DryRun)
 		if err != nil {
 			return err
 		}
 
-		return printDoctorJSON(withAudit(cfg, actx, audit))
+		if err := printDoctorJSON(withAudit(cfg, actx, audit)); err != nil {
+			return err
+		}
+
+		if flags.FailOnStale {
+			return staleSuppressionError(audit.Stale, audit.UnknownRule)
+		}
+
+		return nil
 	}
 
 	return printDoctorJSON(buildDoctorJSONReport(cfg, actx))

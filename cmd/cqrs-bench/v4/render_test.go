@@ -8,7 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 )
 
-func TestParsePayloadSizes(t *testing.T) {
+func TestParseSizeList(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -22,10 +22,16 @@ func TestParsePayloadSizes(t *testing.T) {
 		{name: "whitespace only", input: "  ", want: nil},
 		{name: "valid pair", input: "64,256", want: []int{64, 256}},
 		{name: "valid triple with spaces", input: " 64, 256 , 4096 ", want: []int{64, 256, 4096}},
-		{name: "single size errors", input: "128", wantErr: true, errMsg: "at least 2"},
-		{name: "zero size errors", input: "0,64", wantErr: true, errMsg: "must be > 0"},
-		{name: "negative size errors", input: "-1,64", wantErr: true, errMsg: "must be > 0"},
-		{name: "non-integer errors", input: "abc,64", wantErr: true, errMsg: "invalid size"},
+		{name: "single number is a valid list", input: "128", want: []int{128}},
+		{name: "zero errors", input: "0,64", wantErr: true, errMsg: "must be greater than 0"},
+		{name: "negative errors", input: "-1,64", wantErr: true, errMsg: "must be greater than 0"},
+		{name: "non-integer errors", input: "abc,64", wantErr: true, errMsg: "invalid number"},
+		{
+			name:    "the flag is named",
+			input:   "abc,64",
+			wantErr: true,
+			errMsg:  "--payload-sizes",
+		},
 		{
 			name:    "flag-like value (--profile)",
 			input:   "--profile",
@@ -50,7 +56,7 @@ func TestParsePayloadSizes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := parsePayloadSizes(tt.input)
+			got, err := parseSizeList("payload-sizes", tt.input)
 			if tt.wantErr {
 				if err == nil {
 					t.Fatalf("expected error containing %q, got nil", tt.errMsg)
@@ -461,12 +467,14 @@ func TestFmtNoisyCount(t *testing.T) {
 func TestResolveFormat(t *testing.T) {
 	t.Parallel()
 
-	if got := resolveFormat("json"); got != "json" {
-		t.Errorf("resolveFormat(json) = %q, want json", got)
-	}
+	for _, target := range []reportTarget{{terminal: false}, {terminal: true}} {
+		if got := target.resolveFormat("json"); got != "json" {
+			t.Errorf("resolveFormat(json) = %q, want json", got)
+		}
 
-	if got := resolveFormat("csv"); got != "csv" {
-		t.Errorf("resolveFormat(csv) = %q, want csv", got)
+		if got := target.resolveFormat("csv"); got != "csv" {
+			t.Errorf("resolveFormat(csv) = %q, want csv", got)
+		}
 	}
 }
 

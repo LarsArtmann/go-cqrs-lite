@@ -10,14 +10,20 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
-// E014: No read-your-writes consistency.
-// Detects projects using projectionhost that don't drain or sync projections
-// before responding to commands. The read model may be stale when the command
-// handler returns, leading to "I just created it but it's not there" bugs.
+// E014: No read consistency guard for async projections.
+// Detects projects using projectionhost that never consult the host's
+// staleness surface. Projections catch up in the background, so the read
+// model may be stale when the command handler returns — the "I just created
+// it but it's not there" bug.
 //
-// Uses type-aware receiver matching: checks that Drain/Sync/Flush/WaitFor is
-// called on a projectionhost.Host variable. Falls back to variable-name
-// heuristic ("host", "proj") in unit tests without type info.
+// Uses type-aware receiver matching: the suppression counts only when
+// CheckStaleness / CheckProjectionStaleness / LagDuration / LagPerProjection
+// is called on a projectionhost.Host. These are the only read-freshness
+// primitives the host offers (projectionhost/v4/staleness.go, host.go) —
+// the list used to name Drain/Sync/Flush/WaitFor, methods that do not exist
+// on Host, so the suggestion could not compile and nothing real could
+// silence the rule. Falls back to a variable-name heuristic ("host", "proj")
+// in unit tests without type info.
 //
 //nolint:ireturn // factory returns public interface
 func NewE014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -28,10 +34,9 @@ func NewE014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			// Type-aware check: drain/sync/flush/wait on a projectionhost type.
 			if _, found := projectCallsMethodOnType(
 				ctx,
-				[]string{"Drain", "Sync", "Flush", "WaitFor"},
+				[]string{"CheckStaleness", "CheckProjectionStaleness", "LagDuration", "LagPerProjection"},
 				[]string{"go-cqrs-lite/projectionhost", "cqrs-lite/projectionhost"},
 			); found {
 				return nil, nil
@@ -45,11 +50,13 @@ func NewE014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return singleFinding(
 				ctx,
 				"E014",
-				"Project uses projectionhost but has no projection drain/sync/flush call — "+
-					"the read model may be stale when the command handler returns",
-				"Call a drain/sync method (e.g., host.Sync() or host.Drain()) before "+
-					"responding to commands, or use a read-your-writes strategy "+
-					"(synchronous projection for the command's own stream)",
+				"Project uses projectionhost but never checks projection staleness — "+
+					"projections catch up asynchronously, so the read model may be stale "+
+					"when the command handler returns",
+				"Make read-after-write explicit: guard read-model reads with "+
+					"host.CheckStaleness(maxStaleness) (or host.CheckProjectionStaleness) and answer 503 or "+
+					"stale data on ErrProjectionStale, or respond from the command's own state instead of "+
+					"the read model",
 				pos,
 				finding.SeverityInfo,
 				finding.ConfidenceLow,

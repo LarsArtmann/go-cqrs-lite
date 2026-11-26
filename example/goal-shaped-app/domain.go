@@ -5,6 +5,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
+//go:generate cqrs-gen --catalog .
+
 // The Goal, in domain types. This file is the ENTIRE developer-owned data
 // surface: plain Go structs. It imports nothing from go-cqrs-lite except the
 // tier-1 core-domain bus types (command, query) — no engines, no schema, no
@@ -26,6 +28,8 @@ const (
 )
 
 // TaskCreated opens a task.
+//
+//cqrs:event task.created
 type TaskCreated struct {
 	ID       string `json:"id"`
 	Title    string `json:"title"`
@@ -36,6 +40,8 @@ type TaskCreated struct {
 // The Updated suffix selects the convention's update fold — the payload is
 // the full resulting row (convention folds mirror field-by-field, so the
 // event carries Title/Priority too, sourced from the decider's state).
+//
+//cqrs:event task.updated
 type TaskUpdated struct {
 	ID       string `json:"id"`
 	Title    string `json:"title"`
@@ -45,6 +51,8 @@ type TaskUpdated struct {
 
 // TaskDeleted removes its task. The Evolution's Deleted-convention fold
 // makes the view disappear — deletion is a domain event, never a mutation.
+//
+//cqrs:event task.deleted
 type TaskDeleted struct {
 	ID string `json:"id"`
 }
@@ -60,6 +68,8 @@ type TaskView struct {
 }
 
 // CreateTaskCmd opens a task. The stream ID is the task identity.
+//
+//cqrs:command task.create
 type CreateTaskCmd struct {
 	*command.BasicCommand
 
@@ -68,16 +78,22 @@ type CreateTaskCmd struct {
 }
 
 // CompleteTaskCmd marks an open task done.
+//
+//cqrs:command task.complete
 type CompleteTaskCmd struct {
 	*command.BasicCommand
 }
 
 // DeleteTaskCmd tombstones a task (ADR-0114: deletion is a domain event).
+//
+//cqrs:command task.delete
 type DeleteTaskCmd struct {
 	*command.BasicCommand
 }
 
 // GetTask asks for one task view by ID.
+//
+//cqrs:query task.get
 type GetTask struct {
 	*query.BasicQuery
 
@@ -85,6 +101,8 @@ type GetTask struct {
 }
 
 // OpenTasks asks for every task whose status is still open.
+//
+//cqrs:query task.open
 type OpenTasks struct {
 	*query.BasicQuery
 }

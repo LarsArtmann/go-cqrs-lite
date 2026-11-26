@@ -119,6 +119,9 @@ type txAnalysis struct {
 	commitCalled bool // tx.Commit() appears as a direct call
 	deferCommit  bool // defer tx.Commit() appears
 	returnsNil   bool // a bare `return nil` success path exists
+	// bareReturnNilPos is the last `return nil` whose ONLY result is nil,
+	// i.e. the statement the direct fix rewrites. Zero when none exists.
+	bareReturnNilPos token.Pos
 	// escapes is true when tx leaves the function via a call argument
 	// (callback-helper pattern) or a composite-literal field (iterator
 	// pattern like &iter{tx: tx}). In both cases the callee/struct owns the
@@ -149,11 +152,16 @@ func analyzeTxUsage(fn *ast.FuncDecl, txVar string) txAnalysis {
 			}
 
 		case *ast.ReturnStmt:
-			if !a.returnsNil {
-				for _, result := range node.Results {
-					if id, ok := result.(*ast.Ident); ok && id.Name == "nil" {
-						a.returnsNil = true
-					}
+			for _, result := range node.Results {
+				id, ok := result.(*ast.Ident)
+				if !ok || id.Name != "nil" {
+					continue
+				}
+
+				a.returnsNil = true
+
+				if len(node.Results) == 1 {
+					a.bareReturnNilPos = node.Pos()
 				}
 			}
 

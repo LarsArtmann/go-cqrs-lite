@@ -450,7 +450,7 @@ are not detectors; listing one in `rules.disable` is a silent no-op.
 | A011 | inconsistent-json-key-casing-event-payloads | Info     | Event payload structs with mixed JSON key casing                                    |
 | A012 | missing-tombstone-handling                  | Info     | Fold function does not check for tombstone events                                   |
 | A013 | pointer-vs-value-basic-command              | Warning  | Embeds BasicCommand by value — cannot satisfy command.Command                       |
-| A014 | deprecated-api-usage                        | Warning  | Calls to deprecated APIs (Register)                                                 |
+| A014 | deprecated-api-usage                        | Warning  | Calls to APIs the library marks Deprecated (v3-compat aggregate names, ParseType, tombstones) |
 | A015 | global-mutable-state                        | Error    | Global mutable variable — race condition risk                                       |
 | A016 | missing-idempotency-middleware              | Warning  | Command dispatcher lacks idempotency middleware                                     |
 | A017 | missing-snapshot-strategy                   | Warning  | Repository without snapshot strategy — slow aggregates                              |

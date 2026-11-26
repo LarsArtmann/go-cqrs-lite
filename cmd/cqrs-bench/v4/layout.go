@@ -4,35 +4,22 @@ import (
 	"context"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
+	"io"
 	"math"
-	"os"
 	"strings"
 
-	cmdguard "github.com/larsartmann/cmdguard/v5/pkg/cmdguard/v5"
 	"github.com/larsartmann/go-output"
-	gotable "github.com/larsartmann/go-output/table"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
-func registerLayoutCommand(cli *cmdguard.CLI[AppConfig]) {
-	layoutCmd, err := cmdguard.NewCommand[AppConfig, *LayoutFlags]("layout", &LayoutFlags{},
-		layoutHandler,
-		cmdguard.WithShort("Explore layout cost model — pre-deployment \"what if\" analysis"),
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating layout command: %v\n", err)
-		os.Exit(1)
-	}
+// layoutRuleWidth is the width of the text layout's heading rule.
+const layoutRuleWidth = 72
 
-	if err := cmdguard.AddCommand(cli, layoutCmd); err != nil {
-		fmt.Fprintf(os.Stderr, "Error adding layout command: %v\n", err)
-		os.Exit(1)
-	}
-}
-
-// layoutEntry holds the scoring result for one storage-layout × priority pair.
+// layoutEntry holds the scoring result for one storage-layout and priority
+// pair.
 type layoutEntry struct {
 	Priority     string  `json:"priority"`
 	Selected     string  `json:"selected"`
@@ -93,7 +80,18 @@ func layoutProfile(layout metaengine.StorageLayout) metaengine.EngineProfile {
 	}
 }
 
-func parsePriority(s string) (metaengine.Priority, bool) {
+// parsePriority resolves --priority; empty selects the balanced priority.
+func parsePriority(s string) (metaengine.Priority, error) {
+	priority, ok := priorityByName(s)
+	if !ok {
+		return "", fmt.Errorf("%w: unknown --priority %q (use: balanced, read-speed, write-speed, storage-space)",
+			errFlagValue, s)
+	}
+
+	return priority, nil
+}
+
+func priorityByName(s string) (metaengine.Priority, bool) {
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case "", "balanced":
 		return metaengine.PriorityBalanced, true
@@ -108,150 +106,203 @@ func parsePriority(s string) (metaengine.Priority, bool) {
 	}
 }
 
-func parseLayoutFilter(s string) (string, bool) {
+// parseLayoutFilter resolves --layout into the canonical layout name; empty
+// keeps every layout.
+func parseLayoutFilter(s string) (string, error) {
 	s = strings.ToLower(strings.TrimSpace(s))
 	if s == "" {
-		return "", true
+		return "", nil
 	}
 
-	for _, m := range allLayoutMeta() {
-		if strings.EqualFold(m.name, s) || strings.EqualFold(string(m.layout), s) {
-			return m.name, true
+	for _, meta := range allLayoutMeta() {
+		if strings.EqualFold(meta.name, s) || strings.EqualFold(string(meta.layout), s) {
+			return meta.name, nil
 		}
 	}
 
-	return "", false
+	return "", fmt.Errorf("%w: unknown --layout %q (use: kv, lsm, row, columnar)", errFlagValue, s)
 }
 
-func layoutHandler(_ context.Context, _ *AppConfig, flags *LayoutFlags) error {
-	validateFormat("layout", flags.Format, layoutFormats)
+// layoutHandler is the layout command: a pre-deployment "what if" look at
+// the metaengine layout cost model.
+func layoutHandler(_ context.Context, _ *appConfig, flags layoutFlags) error {
+	priorities, priorityErr := flags.priorities()
 
-	priorities := allPriorities()
+	layoutFilter, layoutErr := parseLayoutFilter(flags.Layout)
 
-	if flags.Priority != "" {
-		p, ok := parsePriority(flags.Priority)
-		if !ok {
-			fatalf(
-				"unknown priority %q (use: balanced, read-speed, write-speed, storage-space)",
-				flags.Priority,
-			)
-		}
-
-		priorities = []metaengine.Priority{p}
+	err := errors.Join(validateFormat("layout", flags.Format, layoutFormats()), priorityErr, layoutErr)
+	if err != nil {
+		return err
 	}
 
-	layoutFilter, ok := parseLayoutFilter(flags.Layout)
-	if !ok {
-		fatalf("unknown layout %q (use: kv, lsm, row, columnar)", flags.Layout)
+	groups, err := scoreLayouts(priorities, layoutFilter, flags.Verbose)
+	if err != nil {
+		return err
 	}
 
+	target := fileTarget(flags.Output)
+	format := target.resolveFormat(flags.Format)
+
+	return target.render(func(out reportWriter) error {
+		return renderLayout(out, format, groups, flags.Verbose)
+	})
+}
+
+// priorities resolves --priority into the priorities to score.
+func (f layoutFlags) priorities() ([]metaengine.Priority, error) {
+	if f.Priority == "" {
+		return allPriorities(), nil
+	}
+
+	priority, err := parsePriority(f.Priority)
+	if err != nil {
+		return nil, err
+	}
+
+	return []metaengine.Priority{priority}, nil
+}
+
+// layoutCosts are the embed and normalize cost of one engine profile.
+type layoutCosts struct {
+	embed metaengine.LayoutCost
+	norm  metaengine.LayoutCost
+}
+
+// scoreLayouts scores every selected layout for every priority, asking the
+// planner's own SelectLayout which option it would pick.
+func scoreLayouts(
+	priorities []metaengine.Priority, layoutFilter string, verbose bool,
+) ([]layoutGroup, error) {
 	var groups []layoutGroup
 
-	for _, m := range allLayoutMeta() {
-		if layoutFilter != "" && m.name != layoutFilter {
+	for _, meta := range allLayoutMeta() {
+		if layoutFilter != "" && meta.name != layoutFilter {
 			continue
 		}
 
-		profile := layoutProfile(m.layout)
-		costs := metaengine.ScoreLayouts(profile)
+		profile := layoutProfile(meta.layout)
 
-		var embedCost, normCost metaengine.LayoutCost
-
-		for _, c := range costs {
-			if c.Option == metaengine.LayoutEmbed {
-				embedCost = c
-			}
-
-			if c.Option == metaengine.LayoutNormalize {
-				normCost = c
-			}
+		costs, err := scoreCosts(profile)
+		if err != nil {
+			return nil, err
 		}
 
-		grp := layoutGroup{Layout: m.name, Engines: m.engines}
+		entries := make([]layoutEntry, 0, len(priorities))
 
-		for _, p := range priorities {
-			w := p.Weights()
-			embedScore := embedCost.ScoreWeighted(w)
-			normScore := normCost.ScoreWeighted(w)
-
-			selected := "Embed"
-			if normScore < embedScore {
-				selected = "Normalize"
-			}
-
-			margin := math.Abs(embedScore-normScore) / math.Max(embedScore, normScore) * 100
-
-			entry := layoutEntry{
-				Priority:   string(p),
-				Selected:   selected,
-				EmbedScore: embedScore,
-				NormScore:  normScore,
-				MarginPct:  margin,
-			}
-			if flags.Verbose {
-				entry.EmbedRead = embedCost.ReadCost
-				entry.EmbedWrite = embedCost.WriteCost
-				entry.EmbedStorage = embedCost.StorageCost
-				entry.NormRead = normCost.ReadCost
-				entry.NormWrite = normCost.WriteCost
-				entry.NormStorage = normCost.StorageCost
-			}
-
-			grp.Entries = append(grp.Entries, entry)
+		for _, priority := range priorities {
+			entries = append(entries, scorePriority(profile, priority, costs, verbose))
 		}
 
-		groups = append(groups, grp)
+		groups = append(groups, layoutGroup{Layout: meta.name, Engines: meta.engines, Entries: entries})
 	}
 
-	withOutput(flags.Output, func(w *os.File) {
-		switch resolveFormat(flags.Format) {
-		case formatJSON:
-			enc := jsontext.NewEncoder(w, jsontext.WithIndent("  "))
-			_ = json.MarshalEncode(enc, groups)
-		case formatTable:
-			if err := gotable.Write(
-				w,
-				buildLayoutTable(groups),
-				gotable.WithColorMode(output.ColorModeAuto),
-			); err != nil {
-				fatalf("render table: %v", err)
-			}
-		default:
-			renderLayoutText(w, groups, flags.Verbose)
-		}
-	})
-
-	return nil
+	return groups, nil
 }
 
-// buildLayoutTable renders all layout groups as one bordered table — the
-// tabular twin of renderLayoutText (same columns the text renderer prints).
-func buildLayoutTable(groups []layoutGroup) *output.Table {
-	t := output.NewTable([]string{"Layout", "Priority", "Selected", "Embed", "Normalize", "Margin"})
+// scoreCosts reads the embed and normalize cost out of the cost model.
+func scoreCosts(profile metaengine.EngineProfile) (layoutCosts, error) {
+	var costs layoutCosts
 
-	for _, grp := range groups {
-		for _, e := range grp.Entries {
-			t.AddRow([]string{
-				grp.Layout,
-				e.Priority,
-				e.Selected,
-				fmt.Sprintf("%.2f", e.EmbedScore),
-				fmt.Sprintf("%.2f", e.NormScore),
-				fmt.Sprintf("%.1f%%", e.MarginPct),
+	for _, cost := range metaengine.ScoreLayouts(profile) {
+		switch cost.Option {
+		case metaengine.LayoutEmbed:
+			costs.embed = cost
+		case metaengine.LayoutNormalize:
+			costs.norm = cost
+		}
+	}
+
+	if costs.embed.Option == "" || costs.norm.Option == "" {
+		return costs, fmt.Errorf("cost model returned no embed or normalize option for %s", profile.Name)
+	}
+
+	return costs, nil
+}
+
+// scorePriority scores one priority. The selected option comes from
+// metaengine.SelectLayout, so the tool shows what the planner would do
+// rather than a second copy of its decision rule.
+func scorePriority(
+	profile metaengine.EngineProfile,
+	priority metaengine.Priority,
+	costs layoutCosts,
+	verbose bool,
+) layoutEntry {
+	weights := priority.Weights()
+
+	embedScore := costs.embed.ScoreWeighted(weights)
+	normScore := costs.norm.ScoreWeighted(weights)
+
+	option, _ := metaengine.SelectLayout(profile, priority)
+
+	entry := layoutEntry{
+		Priority:   string(priority),
+		Selected:   string(option),
+		EmbedScore: embedScore,
+		NormScore:  normScore,
+		MarginPct:  math.Abs(embedScore-normScore) / math.Max(embedScore, normScore) * 100,
+	}
+
+	if verbose {
+		entry.EmbedRead = costs.embed.ReadCost
+		entry.EmbedWrite = costs.embed.WriteCost
+		entry.EmbedStorage = costs.embed.StorageCost
+		entry.NormRead = costs.norm.ReadCost
+		entry.NormWrite = costs.norm.WriteCost
+		entry.NormStorage = costs.norm.StorageCost
+	}
+
+	return entry
+}
+
+// renderLayout writes the scored layout groups in format.
+func renderLayout(out reportWriter, format string, groups []layoutGroup, verbose bool) error {
+	switch format {
+	case formatJSON:
+		encoder := jsontext.NewEncoder(out.w, jsontext.WithIndent("  "))
+		if err := json.MarshalEncode(encoder, groups); err != nil {
+			return writeError(err)
+		}
+
+		return nil
+	case formatTable:
+		return out.table(buildLayoutTable(groups))
+	default:
+		renderLayoutText(out.w, groups, verbose)
+
+		return nil
+	}
+}
+
+// buildLayoutTable renders all layout groups as one bordered table, the
+// tabular twin of renderLayoutText (same columns).
+func buildLayoutTable(groups []layoutGroup) *output.Table {
+	table := output.NewTable([]string{"Layout", "Priority", "Selected", "Embed", "Normalize", "Margin"})
+
+	for _, group := range groups {
+		for _, entry := range group.Entries {
+			table.AddRow([]string{
+				group.Layout,
+				entry.Priority,
+				entry.Selected,
+				fmt.Sprintf("%.2f", entry.EmbedScore),
+				fmt.Sprintf("%.2f", entry.NormScore),
+				fmt.Sprintf("%.1f%%", entry.MarginPct),
 			})
 		}
 	}
 
-	return t
+	return table
 }
 
-func renderLayoutText(w *os.File, groups []layoutGroup, verbose bool) {
-	for _, grp := range groups {
-		fmt.Fprintf(w, "\n%s (%s)\n", grp.Layout, grp.Engines)
-		fmt.Fprintln(w, strings.Repeat("-", 72))
+// renderLayoutText writes the scored layout groups as aligned text.
+func renderLayoutText(w io.Writer, groups []layoutGroup, verbose bool) {
+	for _, group := range groups {
+		fmt.Fprintf(w, "\n%s (%s)\n", group.Layout, group.Engines)
+		fmt.Fprintln(w, strings.Repeat("-", layoutRuleWidth))
 
 		if verbose {
-			first := grp.Entries[0]
+			first := group.Entries[0]
 			fmt.Fprintf(w, "  Embed:      Read=%.2f  Write=%.2f  Storage=%.2f\n",
 				first.EmbedRead, first.EmbedWrite, first.EmbedStorage)
 			fmt.Fprintf(w, "  Normalize:  Read=%.2f  Write=%.2f  Storage=%.2f\n",
@@ -262,9 +313,9 @@ func renderLayoutText(w *os.File, groups []layoutGroup, verbose bool) {
 		fmt.Fprintf(w, "  %-16s %-12s %12s %12s %10s\n",
 			"Priority", "Selected", "Embed", "Normalize", "Margin")
 
-		for _, e := range grp.Entries {
+		for _, entry := range group.Entries {
 			fmt.Fprintf(w, "  %-16s %-12s %12.2f %12.2f %9.1f%%\n",
-				e.Priority, e.Selected, e.EmbedScore, e.NormScore, e.MarginPct)
+				entry.Priority, entry.Selected, entry.EmbedScore, entry.NormScore, entry.MarginPct)
 		}
 	}
 

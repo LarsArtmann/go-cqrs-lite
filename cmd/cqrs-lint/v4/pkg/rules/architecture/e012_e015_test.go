@@ -1,6 +1,7 @@
 package architecture_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
@@ -140,19 +141,68 @@ func setup(host *projectionhost.Host) {
 	ruletest.AssertRule(t, findings, "E014", 1)
 }
 
-func TestE014_NoFindingWithDrain(t *testing.T) {
+func TestE014_NoFindingWithStalenessGuard(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main
 
 import "github.com/larsartmann/go-cqrs-lite/projectionhost"
 
-func respond(host *projectionhost.Host) {
-	host.Drain()
+func respond(host *projectionhost.Host) error {
+	return host.CheckStaleness(0)
 }
 `,
 	})
 	findings := ruletest.RunDetector(t, architecture.NewE014Detector(ctx))
 	ruletest.AssertRule(t, findings, "E014", 0)
+}
+
+// TestE014_NoFindingWithLagRead: LagDuration is the other real freshness
+// primitive on projectionhost.Host.
+func TestE014_NoFindingWithLagRead(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/projectionhost"
+
+func lag(host *projectionhost.Host) string {
+	return host.LagDuration().String()
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE014Detector(ctx))
+	ruletest.AssertRule(t, findings, "E014", 0)
+}
+
+// TestE014_SuggestionNamesRealAPI: every method the suggestion tells the
+// user to call must exist on projectionhost.Host (projectionhost/v4).
+func TestE014_SuggestionNamesRealAPI(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/projectionhost"
+
+func setup(host *projectionhost.Host) {
+	_ = host
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE014Detector(ctx))
+	if len(findings) != 1 {
+		t.Fatalf("expected 1 finding, got %d", len(findings))
+	}
+
+	suggestion := findings[0].Suggestion
+	for _, gone := range []string{"Drain", "Sync()", "Flush", "WaitFor"} {
+		if strings.Contains(suggestion, gone) {
+			t.Errorf("suggestion names %q, which projectionhost.Host does not have: %s", gone, suggestion)
+		}
+	}
+
+	for _, real := range []string{"CheckStaleness", "CheckProjectionStaleness"} {
+		if !strings.Contains(suggestion, real) {
+			t.Errorf("suggestion must name the real %s: %s", real, suggestion)
+		}
+	}
 }
 
 func TestE014_NoFindingWithoutProjectionHost(t *testing.T) {

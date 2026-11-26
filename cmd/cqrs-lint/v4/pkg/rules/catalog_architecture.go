@@ -125,7 +125,7 @@ func architectureRules() []RuleInfo {
 			Category:    "architecture",
 			Severity:    "info",
 			Confidence:  "low",
-			Description: "Projectionhost used without drain/wait for read consistency",
+			Description: "Projectionhost used without a projection staleness guard — the read model may be stale when a command returns",
 			AutoFix:     false,
 		},
 		{

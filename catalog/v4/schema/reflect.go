@@ -184,6 +184,10 @@ func buildSchema(t reflect.Type) *Schema {
 		return &Schema{Type: TypeString}
 	}
 
+	if wireType, ok := textWireType(t); ok {
+		return &Schema{Type: wireType}
+	}
+
 	return structSchema(t)
 }
 
@@ -277,6 +281,10 @@ func propertyFromReflect(t reflect.Type) *Property {
 	if t.Kind() == reflect.Struct {
 		if t == reflect.TypeFor[time.Time]() {
 			return &Property{Type: TypeString, Format: "date-time"}
+		}
+
+		if wireType, ok := textWireType(t); ok {
+			return &Property{Type: wireType}
 		}
 
 		s := fromReflect(t)

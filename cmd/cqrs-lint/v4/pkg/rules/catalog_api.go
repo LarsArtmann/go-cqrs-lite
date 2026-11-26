@@ -125,7 +125,7 @@ func apiRules() []RuleInfo {
 			Category:    "api",
 			Severity:    "warning",
 			Confidence:  "high",
-			Description: "Calls to deprecated APIs (dispatcher.Register, command.Register)",
+			Description: "Calls to APIs the library marks Deprecated (command/event/query v3-compat aggregate names, ParseType, tombstones)",
 			AutoFix:     false,
 		},
 		{

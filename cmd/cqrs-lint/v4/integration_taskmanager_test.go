@@ -24,10 +24,13 @@ import (
 func TestLintExampleTaskmanager(t *testing.T) {
 	t.Parallel()
 
-	tmDir := filepath.Join("..", "example", "taskmanager")
+	// The test cwd is cmd/cqrs-lint/v4; the reference project is a sibling of
+	// cmd/. A missing project is fatal, not a skip: a skip here silently
+	// disabled the reference-project gate on every run.
+	tmDir := filepath.Join("..", "..", "..", "example", "taskmanager")
 
 	if _, err := os.Stat(filepath.Join(tmDir, "go.mod")); err != nil {
-		t.Skipf("example/taskmanager not found at %s: %v", tmDir, err)
+		t.Fatalf("example/taskmanager not found at %s: %v", tmDir, err)
 	}
 
 	ctx, err := analyzer.BuildContext(tmDir)
@@ -74,7 +77,7 @@ func TestLintExampleTaskmanager(t *testing.T) {
 	want, err := os.ReadFile(goldenPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			t.Skipf(
+			t.Fatalf(
 				"golden file not found at %s — run with CQRS_LINT_UPDATE_GOLDEN=1 to create",
 				goldenPath,
 			)

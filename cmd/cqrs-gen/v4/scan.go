@@ -3,73 +3,107 @@ package main
 import (
 	"fmt"
 	"go/ast"
+	"go/build"
 	"go/parser"
 	"go/token"
-	"io"
 	"io/fs"
+	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 )
 
-// Entry represents a single discovered cqrs marker.
-type Entry struct {
-	// TypeName is the marker value: the command/query/event type string passed
-	// to RegisterTyped / Subscribe (e.g. "CreateUser", "GetUser", "UserCreated").
-	TypeName string
-	// StructName is the Go type name the marker was attached to.
-	StructName string
-	// PackageName is the Go package name of the source file (f.Name.Name), used
-	// as the default package for the generated file.
-	PackageName string
-}
+const ellipsisSuffix = "..."
 
-func scan(paths []string, handlerType string) ([]Entry, error) {
-	var entries []Entry
-
-	for _, path := range paths {
-		found, err := scanPath(path, handlerType)
-		if err != nil {
-			return nil, fmt.Errorf("scan path %s: %w", path, err)
-		}
-		entries = append(entries, found...)
+func scan(paths []string, kinds map[kind]bool) ([]pkg, error) {
+	dirs, err := markerDirs(paths)
+	if err != nil {
+		return nil, err
 	}
 
-	return entries, nil
+	var pkgs []pkg
+
+	for _, dir := range dirs {
+		found, err := scanDir(dir, kinds)
+		if err != nil {
+			return nil, err
+		}
+
+		pkgs = append(pkgs, found...)
+	}
+
+	return pkgs, nil
 }
 
-func scanPath(root, handlerType string) ([]Entry, error) {
-	var entries []Entry
+// markerDirs treats a path ending in "..." as every package below the
+// directory, as the go command does.
+func markerDirs(paths []string) ([]string, error) {
+	var dirs []string
+
+	seen := make(map[string]bool)
+
+	for _, path := range paths {
+		root, err := rootDir(path)
+		if err != nil {
+			return nil, err
+		}
+
+		found, err := subdirs(root)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, dir := range found {
+			if !seen[dir] {
+				seen[dir] = true
+				dirs = append(dirs, dir)
+			}
+		}
+	}
+
+	return dirs, nil
+}
+
+func rootDir(path string) (string, error) {
+	dir := filepath.Clean(strings.TrimSuffix(path, ellipsisSuffix))
+
+	info, err := os.Stat(dir)
+	if err != nil {
+		return "", fmt.Errorf("scan path %s: %w", path, err)
+	}
+
+	if !info.IsDir() {
+		return filepath.Dir(dir), nil
+	}
+
+	return dir, nil
+}
+
+// subdirs walks root. The root itself is never pruned: filepath.WalkDir
+// reports it under the name ".", which the hidden-directory rule matches.
+func subdirs(root string) ([]string, error) {
+	dirs := []string{root}
 
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
+		switch {
+		case err != nil:
 			return fmt.Errorf("walk %s: %w", path, err)
-		}
-		if d.IsDir() {
-			if shouldSkipDir(d.Name()) {
-				return filepath.SkipDir
-			}
+		case !d.IsDir() || path == root:
 			return nil
-		}
-		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
-			return nil
+		case shouldSkipDir(d.Name()):
+			return filepath.SkipDir
 		}
 
-		found, err := scanFile(path, handlerType)
-		if err != nil {
-			return fmt.Errorf("scan %s: %w", path, err)
-		}
-		entries = append(entries, found...)
+		dirs = append(dirs, path)
+
 		return nil
 	})
 
-	return entries, err
+	return dirs, err
 }
 
-// shouldSkipDir reports whether a directory tree should be excluded from the
-// scan. Hidden directories (".git", ".idea"), dependency trees ("vendor",
-// "node_modules"), and fixture dirs ("testdata") never carry cqrs markers and
-// only slow the walk or risk false matches against third-party code.
+// shouldSkipDir reports whether a directory tree is excluded from the scan.
+// Hidden directories (".git", ".idea"), dependency trees ("vendor",
+// "node_modules"), and fixture dirs ("testdata") never carry markers.
 func shouldSkipDir(name string) bool {
 	if name == "vendor" || name == "node_modules" || name == "testdata" {
 		return true
@@ -78,128 +112,58 @@ func shouldSkipDir(name string) bool {
 	return strings.HasPrefix(name, ".")
 }
 
-// dedupEntries drops entries that share a StructName with an earlier entry.
-// Two structs with the same name cannot coexist in one generated file
-// (duplicate RegisterXxxHandler declarations), so the first wins and later
-// collisions are reported so the caller can split the run if both are needed.
-func dedupEntries(w io.Writer, entries []Entry) []Entry {
-	seen := make(map[string]struct{}, len(entries))
-	deduped := make([]Entry, 0, len(entries))
-
-	for _, e := range entries {
-		if _, ok := seen[e.StructName]; ok {
-			_, _ = fmt.Fprintf(
-				w,
-				"warning: duplicate struct %q skipped (already registered)\n",
-				e.StructName,
-			)
-			continue
-		}
-		seen[e.StructName] = struct{}{}
-		deduped = append(deduped, e)
+func scanDir(dir string, kinds map[kind]bool) ([]pkg, error) {
+	files, err := goFiles(dir)
+	if err != nil || len(files) == 0 {
+		return nil, err
 	}
 
-	return deduped
-}
-
-func scanFile(path, handlerType string) ([]Entry, error) {
 	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
+
+	parsed := make([]*ast.File, 0, len(files))
+
+	for _, name := range files {
+		path := filepath.Join(dir, name)
+
+		file, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
+		if err != nil {
+			return nil, fmt.Errorf("parse %s: %w", path, err)
+		}
+
+		parsed = append(parsed, file)
+	}
+
+	return resolvePackage(dir, parsed, fset, kinds)
+}
+
+// goFiles skips files the build excludes (build tags, GOOS/GOARCH suffixes):
+// they can never reach the compiler, so their markers can never be
+// referenced either.
+func goFiles(dir string) ([]string, error) {
+	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, fmt.Errorf("parse %s: %w", path, err)
+		return nil, fmt.Errorf("read %s: %w", dir, err)
 	}
 
-	var entries []Entry
-	prefix := "//cqrs:" + handlerType + " "
-	tagKey := handlerType
+	names := make([]string, 0, len(entries))
 
-	for _, decl := range f.Decls {
-		genDecl, ok := decl.(*ast.GenDecl)
-		if !ok || genDecl.Tok != token.TYPE {
+	for _, entry := range entries {
+		name := entry.Name()
+
+		if entry.IsDir() || !strings.HasSuffix(name, ".go") ||
+			strings.HasSuffix(name, "_test.go") || name == generatedFile {
 			continue
 		}
 
-		for _, spec := range genDecl.Specs {
-			ts, ok := spec.(*ast.TypeSpec)
-			if !ok {
-				continue
-			}
+		match, err := build.Default.MatchFile(dir, name)
+		if err != nil {
+			return nil, fmt.Errorf("build constraints of %s: %w", filepath.Join(dir, name), err)
+		}
 
-			// Check comment marker first (backward compat)
-			markerValue := extractMarker(genDecl.Doc, prefix)
-			if markerValue == "" {
-				markerValue = extractMarker(ts.Doc, prefix)
-			}
-
-			// Fall back to struct tag
-			if markerValue == "" {
-				if structType, ok := ts.Type.(*ast.StructType); ok {
-					markerValue = extractStructTag(structType, tagKey)
-				}
-			}
-
-			if markerValue == "" {
-				continue
-			}
-
-			entries = append(entries, Entry{
-				TypeName:    markerValue,
-				StructName:  ts.Name.Name,
-				PackageName: f.Name.Name,
-			})
+		if match {
+			names = append(names, name)
 		}
 	}
 
-	return entries, nil
-}
-
-func extractMarker(doc *ast.CommentGroup, prefix string) string {
-	if doc == nil {
-		return ""
-	}
-
-	for _, c := range doc.List {
-		if after, ok := strings.CutPrefix(c.Text, prefix); ok {
-			return after
-		}
-	}
-
-	return ""
-}
-
-// extractStructTag scans a struct's fields for a `cqrs:"command:CreateUser"` or
-// `cqrs:"query:GetUser"` tag on a special _ (underscore) field used as a
-// type-level marker. This provides a cleaner alternative to comment markers:
-//
-//	type CreateUserCmd struct {
-//	    _ struct{} `cqrs:"command:CreateUser"`
-//	    Name string
-//	}
-func extractStructTag(st *ast.StructType, key string) string {
-	if st.Fields == nil {
-		return ""
-	}
-
-	for _, field := range st.Fields.List {
-		if field.Tag == nil {
-			continue
-		}
-
-		// field.Tag.Value is the raw literal including backticks; strip exactly
-		// one leading and one trailing backtick rather than treating "`" as a
-		// trim cutset.
-		raw := strings.TrimSuffix(strings.TrimPrefix(field.Tag.Value, "`"), "`")
-		cqrsTag := reflect.StructTag(raw).Get("cqrs")
-		if cqrsTag == "" {
-			continue
-		}
-
-		// Tag format: "command:CreateUser" or "query:GetUser"
-		parts := strings.SplitN(cqrsTag, ":", 2)
-		if len(parts) == 2 && parts[0] == key {
-			return parts[1]
-		}
-	}
-
-	return ""
+	return names, nil
 }

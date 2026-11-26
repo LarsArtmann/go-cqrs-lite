@@ -9,28 +9,16 @@ import (
 )
 
 // TestDocs_AsyncAPIExport demos the "docs generate themselves" leg of the
-// Goal: the same declared commands/events/queries that run the app also
-// export a valid AsyncAPI 3.0 document — no second source of truth to keep
-// in sync.
+// Goal: the marked commands/events/queries that run the app also export a
+// valid AsyncAPI 3.0 document through the cqrs-gen declarations — one
+// source of truth, payload schemas included.
 func TestDocs_AsyncAPIExport(t *testing.T) {
 	t.Parallel()
 
-	r := catalog.NewRegistry("goal-shaped-app", "1.0.0")
-	r.AddCommand("tasks", catalog.Message{Name: "task.create", Summary: "Create a task"})
-	r.AddCommand("tasks", catalog.Message{Name: "task.complete", Summary: "Complete a task"})
-	r.AddCommand("tasks", catalog.Message{Name: "task.delete", Summary: "Delete a task"})
+	b := catalog.NewBuilder("goal-shaped-app", "1.0.0")
+	b.AddService("tasks", "Tasks", "1.0.0", "The task domain", CatalogMessages()...)
 
-	r.AddEvent("tasks", catalog.Message{Name: "task.created", Summary: "A task was created"})
-	r.AddEvent("tasks", catalog.Message{Name: "task.updated", Summary: "A task was updated"})
-	r.AddEvent(
-		"tasks",
-		catalog.Message{Name: "task.deleted", Summary: "A task was deleted (ADR-0114 tombstone)"},
-	)
-
-	r.AddQuery("tasks", catalog.Message{Name: "task.get", Summary: "Fetch one task view"})
-	r.AddQuery("tasks", catalog.Message{Name: "task.open", Summary: "List open task views"})
-
-	doc := asyncapi.NewExporter("goal-shaped-app", "1.0.0").Export(r.Build())
+	doc := asyncapi.NewExporter("goal-shaped-app", "1.0.0").Export(b.Build())
 
 	json, err := doc.MarshalJSON()
 	if err != nil {

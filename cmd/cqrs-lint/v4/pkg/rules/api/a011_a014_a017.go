@@ -10,7 +10,6 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
 )
 
 // A011: Inconsistent JSON key casing in event payloads.
@@ -126,35 +125,17 @@ func hasCamelHump(s string) bool {
 }
 
 // A014: Deprecated API usage.
-// Detects calls to deprecated APIs: dispatcher.Register / command.Register
-// (use RegisterTyped).
-// event.NewEvent is deliberately NOT in this table: it carries no Deprecated
-// marker in event/v4 (event/event_construct.go) — preferring event.New is a
-// style choice covered by D007/A002, not a deprecation (fixed 2026-10-08,
-// the "A014 stale deprecation claim" ruling).
-// The qualifier is resolved through the file's import declarations
-// (lintutil.QualifierResolvesTo), so aliased imports are detected and a
-// consumer's own package named "event" no longer false-positives.
-
-// deprecatedAPIEntry pairs a deprecated call target with its replacement.
-type deprecatedAPIEntry struct {
-	pathFragment string // go-cqrs-lite import path fragment that must own the qualifier
-	symbol       string // selector name being called
-	replacement  string // sanctioned replacement, shown in the suggestion
-}
-
-var deprecatedAPIEntries = []deprecatedAPIEntry{ //nolint:gochecknoglobals // static lookup table
-	{
-		pathFragment: "go-cqrs-lite/dispatcher",
-		symbol:       "Register",
-		replacement:  "RegisterTyped (type-safe handler registration)",
-	},
-	{
-		pathFragment: "go-cqrs-lite/command",
-		symbol:       "Register",
-		replacement:  "RegisterTyped (type-safe handler registration)",
-	},
-}
+// Detects calls to APIs the library itself marks Deprecated (see
+// deprecatedAPIEntries in a014_deprecated.go). The qualifier is resolved
+// through the file's import declarations (lintutil.QualifierToImportPath),
+// so aliased imports are detected and a consumer's own package named
+// "event" no longer false-positives.
+//
+// dispatcher.Register and command.Register are deliberately NOT in the
+// table: neither carries a Deprecated marker (dispatcher/v4/dispatcher.go,
+// command/v4/dispatcher.go) and command.Bus is a kept surface — preferring
+// RegisterTyped is coaching (A004), not a deprecation. Same ruling as the
+// event.NewEvent removal (2026-10-08).
 
 //
 //nolint:ireturn // factory returns public interface
@@ -221,19 +202,6 @@ func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-// matchDeprecatedAPI reports the deprecated-API entry matching a call of
-// selName through qualifier, where the qualifier must resolve (via the file's
-// imports) to the entry's go-cqrs-lite path fragment.
-func matchDeprecatedAPI(file *ast.File, qualifier, selName string) (deprecatedAPIEntry, bool) {
-	for _, e := range deprecatedAPIEntries {
-		if e.symbol == selName && lintutil.QualifierResolvesTo(file, qualifier, e.pathFragment) {
-			return e, true
-		}
-	}
-
-	return deprecatedAPIEntry{}, false
 }
 
 // A017: Missing snapshot strategy.

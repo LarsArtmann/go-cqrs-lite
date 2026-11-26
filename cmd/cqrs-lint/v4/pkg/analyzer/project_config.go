@@ -4,6 +4,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"io"
 	"maps"
 	"os"
 	"path/filepath"
@@ -81,7 +82,39 @@ func LoadProjectConfig(dir string) (ProjectConfig, bool, error) {
 		return ProjectConfig{}, true, fmt.Errorf("%s: %w", path, err)
 	}
 
+	// Same normalization the CLI runs on its decoded config (run.go:
+	// Rules.Validate before filtering). Without it the embedded (toolspec)
+	// path kept lowercase/whitespace disable IDs, which DisabledSet and
+	// FilterDisabledFindings compare case-sensitively, kept invalid
+	// severities (demoting the rule to info), and never warned about unknown
+	// keys or orphaned disable-reasons — one file, two behaviors.
+	cfg.Rules.Validate(configWarnings, rawRulesBlock(StripJSONC(data)))
+
 	return cfg, true, nil
+}
+
+// configWarnings receives the rules-config validation warnings raised while
+// loading a project config. The embedded (toolspec) path has no caller-owned
+// writer to pass, so it defaults to stderr like the loader's other warnings.
+//
+//nolint:gochecknoglobals // injectable seam, swapped by tests
+var configWarnings io.Writer = os.Stderr
+
+// rawRulesBlock returns the re-encoded "rules" object of a stripped config
+// document, or nil when there is none — the input Rules.Validate needs to
+// report unknown keys.
+func rawRulesBlock(stripped []byte) []byte {
+	var top map[string]any
+	if err := json.Unmarshal(stripped, &top); err != nil {
+		return nil
+	}
+
+	raw, err := json.Marshal(top["rules"], json.Deterministic(true))
+	if err != nil || string(raw) == "null" {
+		return nil
+	}
+
+	return raw
 }
 
 // LoadParentRulesConfig resolves ancestor .cqrs-lint.json rules for config
@@ -117,7 +150,14 @@ func LoadParentRulesConfig(dir string) (RulesConfig, error) {
 				Rules RulesConfig `json:"rules,omitzero"`
 			}
 			if json.Unmarshal(StripJSONC(data), &top) == nil {
-				merged.Disable = append(merged.Disable, top.Rules.Disable...)
+				for _, id := range top.Rules.Disable {
+					// Ancestor disables are unioned raw; normalize to the
+					// uppercase form DisabledSet compares against.
+					if id = strings.ToUpper(strings.TrimSpace(id)); id != "" {
+						merged.Disable = append(merged.Disable, id)
+					}
+				}
+
 				merged.ExternalAPIStructPrefixes = append(
 					merged.ExternalAPIStructPrefixes,
 					top.Rules.ExternalAPIStructPrefixes...,

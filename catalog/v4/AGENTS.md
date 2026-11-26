@@ -187,7 +187,8 @@ server-rendered HTML).
 
 - **No new dependencies, no templ.** The package uses only the standard
   library plus `go-error-family`. Keep it that way: the catalog module's
-  dependency budget is FULL (`DEP_BUDGET[catalog]=5`), and the point of this
+  dependency budget is FULL (`DEP_BUDGET["catalog/v4"]=10` in
+  `scripts/check-module-layers.sh`), and the point of this
   package is that a service which never serves HTML can still publish a
   reference without pulling in a UI stack. Assets live in
   `architecture/assets/` (CSS/JS) and are inlined via `//go:embed`.
@@ -310,10 +311,14 @@ afterwards (the restore line would otherwise bring it back).
 
 ## Budgets
 
-- `DEP_BUDGET[catalog]=5` and it is FULL: go-faster/yaml, go-error-family,
-  go-snaps (via the cattest golden helpers), templ, templ-components. Any new
-  production dependency needs an explicit budget review.
-- test-only deps (go-snaps, ginkgo, gomega) don't count.
+- `DEP_BUDGET["catalog/v4"]=10` (`scripts/check-module-layers.sh`) and it is FULL.
+  The gate's rule counts 10 of the 12 direct requires: go-faster/yaml,
+  go-humanize, go-error-family, go-etag/server, schema/v4, templ,
+  templ-components (root, icons, utils), and go-snaps (via the cattest golden
+  helpers, a non-`_test.go` importer). Any new production dependency needs an
+  explicit budget review.
+- Only ginkgo and gomega are test-only by the gate's rule (`TEST_PACKAGES`);
+  they don't count.
 
 ## Decisions recorded (2026-11-02, catalog × CUE plan)
 

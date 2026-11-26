@@ -157,6 +157,21 @@ The `task.deleted` fact makes the deleted task vanish from both read
 shapes: `task.get` reports not-found, `task.open` doesn't list it. The
 journal keeps every fact.
 
+### The wiring is generated
+
+Each struct in `domain.go` carries a `cqrs` marker, and `cqrs_gen.go` —
+committed, regenerated with `go generate` — derives everything mechanical
+from it: registration on the composition root (`RegisterCreateTaskCmd(sys,
+streamType, decideCreate)`, no hand-written `Op` wrapper), typed event
+constructors (`NewTaskCreatedEvent`), and the catalog declarations behind the
+AsyncAPI export below. The wire names live once, in the constants `app.go`
+already declared.
+
+```bash
+go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4@latest
+cd example/goal-shaped-app && go generate ./...
+```
+
 ## Test It
 
 ```bash
@@ -174,9 +189,9 @@ GOWORK=off go test ./...
   it cannot drift from the API silently.
 - `TestDocs_CoeffectGate_DanglingSubscriptionFailsLoud` — the `Events`
   declaration arms the coeffect gate; a typo'd subscription fails loudly.
-- `TestDocs_AsyncAPIExport` — the declared commands/events/queries export an
-  AsyncAPI 3.0 document (`catalog/asyncapi`): docs generate themselves, there
-  is no second source of truth.
+- `TestDocs_AsyncAPIExport` — the marked commands/events/queries export an
+  AsyncAPI 3.0 document (`catalog/asyncapi`) through the generated catalog
+  declarations: docs generate themselves, there is no second source of truth.
 
 ## Related
 

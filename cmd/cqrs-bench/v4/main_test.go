@@ -1,349 +1,275 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 )
 
-// buildBinary builds the cqrs-bench binary and returns its path.
-func buildBinary(t *testing.T) string {
-	t.Helper()
+// benchBin is the cqrs-bench binary, built once per test run by TestMain.
+var benchBin string
 
-	bin := t.TempDir() + "/cqrs-bench"
-
-	cmd := exec.Command("go", "build", "-o", bin, ".")
-
-	if out, err := cmd.CombinedOutput(); err != nil {
-		t.Fatalf("go build failed: %v\n%s", err, out)
+// TestMain builds the binary once. Every end-to-end test used to run its own
+// `go build`, which dominated the package's test time.
+func TestMain(m *testing.M) {
+	dir, err := os.MkdirTemp("", "cqrs-bench-bin-*")
+	if err != nil {
+		panic("create temp dir for the cqrs-bench binary: " + err.Error())
 	}
 
-	return bin
+	benchBin = filepath.Join(dir, "cqrs-bench")
+
+	if out, err := exec.Command("go", "build", "-o", benchBin, ".").CombinedOutput(); err != nil {
+		panic("go build failed: " + err.Error() + "\n" + string(out))
+	}
+
+	code := m.Run()
+
+	_ = os.RemoveAll(dir)
+	os.Exit(code)
+}
+
+// benchRun is the outcome of one cqrs-bench invocation.
+type benchRun struct {
+	stdout string
+	stderr string
+	err    error
+}
+
+// failed reports whether the command exited non-zero.
+func (run benchRun) failed() bool {
+	return run.err != nil
+}
+
+// benchEnv is the environment for a test invocation: a private TMPDIR, so a
+// leaked temporary store is visible in that directory, and no forced color,
+// so output does not depend on the ambient terminal settings.
+func benchEnv(scratch string) []string {
+	env := make([]string, 0, len(os.Environ())+1)
+
+	for _, pair := range os.Environ() {
+		name, _, _ := strings.Cut(pair, "=")
+
+		switch name {
+		case "TMPDIR", "FORCE_COLOR", "GO_OUTPUT_FORCE_COLOR":
+			continue
+		}
+
+		env = append(env, pair)
+	}
+
+	return append(env, "TMPDIR="+scratch)
+}
+
+// runBench runs the built cqrs-bench with args and returns its output.
+func runBench(scratch string, args ...string) benchRun {
+	cmd := exec.Command(benchBin, args...)
+	cmd.Env = benchEnv(scratch)
+
+	var stdout, stderr bytes.Buffer
+
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	return benchRun{stdout: stdout.String(), stderr: stderr.String(), err: cmd.Run()}
+}
+
+// mustRunBench runs cqrs-bench and fails the test when it exits non-zero.
+func mustRunBench(t *testing.T, scratch string, args ...string) benchRun {
+	t.Helper()
+
+	run := runBench(scratch, args...)
+	if run.failed() {
+		t.Fatalf("cqrs-bench %s failed: %v\nstdout:\n%s\nstderr:\n%s", strings.Join(args, " "), run.err,
+			run.stdout, run.stderr)
+	}
+
+	return run
+}
+
+// assertNoLeakedStores fails when the command left a temporary store behind.
+func assertNoLeakedStores(t *testing.T, scratch string) {
+	t.Helper()
+
+	left, _ := filepath.Glob(filepath.Join(scratch, "cqrs-bench-*"))
+	if len(left) > 0 {
+		t.Errorf("temporary stores left behind: %v", left)
+	}
+}
+
+// benchResult is the part of a benchkit result the tests assert on.
+type benchResult struct {
+	Backend       string   `json:"backend"`
+	Profile       string   `json:"profile"`
+	Codec         string   `json:"codec"`
+	TotalEvents   int      `json:"totalEvents"`
+	WarmupEvents  int      `json:"warmupEvents"`
+	SkippedPhases []string `json:"skippedPhases"`
+	Disk          struct {
+		DatabaseBytes int64 `json:"databaseBytes"`
+	} `json:"disk"`
+}
+
+// decodeResult unmarshals a single-run result.
+func decodeResult(t *testing.T, document string) benchResult {
+	t.Helper()
+
+	var result benchResult
+	if err := json.Unmarshal([]byte(document), &result); err != nil {
+		t.Fatalf("invalid JSON result: %v\n%s", err, document)
+	}
+
+	return result
 }
 
 func TestCLI_Version(t *testing.T) {
 	t.Parallel()
 
-	bin := buildBinary(t)
+	run := mustRunBench(t, t.TempDir(), "--version")
 
-	out, err := exec.Command(bin, "--version").Output()
-	if err != nil {
-		t.Fatalf("version command failed: %v", err)
+	for _, want := range []string{"cqrs-bench", "version"} {
+		if !strings.Contains(run.stdout, want) {
+			t.Errorf("version output missing %q: %s", want, run.stdout)
+		}
 	}
 
-	output := string(out)
-	if !strings.Contains(output, "cqrs-bench") {
-		t.Errorf("version output missing 'cqrs-bench': %s", output)
-	}
-
-	// Accept both tagged builds (v0.1.0) and development builds ((devel, abc1234)).
-	if !strings.Contains(output, "version") {
-		t.Errorf("version output missing 'version': %s", output)
-	}
-
-	if !strings.Contains(output, "devel") && !strings.Contains(output, "v") {
-		t.Errorf("version output missing version or devel marker: %s", output)
+	if !strings.Contains(run.stdout, "devel") && !strings.Contains(run.stdout, "v") {
+		t.Errorf("version output missing version or devel marker: %s", run.stdout)
 	}
 }
 
-func TestCLI_Help(t *testing.T) {
+// TestCLI_RootHelpListsEveryBackend: the long description is generated from
+// the backend registry, so a backend can no longer be missing from help.
+func TestCLI_RootHelpListsEveryBackend(t *testing.T) {
 	t.Parallel()
 
-	bin := buildBinary(t)
+	run := mustRunBench(t, t.TempDir(), "--help")
 
-	out, err := exec.Command(bin, "--help").CombinedOutput()
-	if err != nil {
-		t.Fatalf("help command failed: %v", err)
-	}
-
-	output := string(out)
-	if !strings.Contains(strings.ToLower(output), "usage") {
-		t.Error("help output missing 'usage' section")
-	}
-
-	if !strings.Contains(output, "run") {
-		t.Error("help output missing 'run' subcommand")
-	}
-
-	if !strings.Contains(output, "compare") {
-		t.Error("help output missing 'compare' subcommand")
+	for _, want := range append(backendNames(), "run", "compare", "sweep", "list-phases", "layout") {
+		if !strings.Contains(run.stdout, want) {
+			t.Errorf("root help missing %q", want)
+		}
 	}
 }
 
 func TestCLI_Run_Memory(t *testing.T) {
 	t.Parallel()
 
-	bin := buildBinary(t)
+	run := mustRunBench(t, t.TempDir(), "run", "--backend", "memory", "--profile", "dev", "--payload-size", "64")
 
-	out, err := exec.Command(
-		bin, "run",
-		"--backend", "memory",
-		"--profile", "dev",
-		"--payload-size", "64",
-	).CombinedOutput()
-	if err != nil {
-		t.Fatalf("run --backend memory failed: %v\n%s", err, out)
-	}
-
-	output := string(out)
-	if !strings.Contains(output, "Benchmark:") {
-		t.Error("run output missing 'Benchmark:' header")
-	}
-
-	if !strings.Contains(output, "Write Performance") {
-		t.Error("run output missing 'Write Performance' section")
+	for _, want := range []string{"Benchmark:", "Write Performance"} {
+		if !strings.Contains(run.stdout, want) {
+			t.Errorf("run output missing %q", want)
+		}
 	}
 }
 
 func TestCLI_Run_JSON(t *testing.T) {
 	t.Parallel()
 
-	bin := buildBinary(t)
+	run := mustRunBench(t, t.TempDir(), "run", "--backend", "memory", "--profile", "dev",
+		"--format", "json", "--payload-size", "64")
 
-	out, err := exec.Command(
-		bin, "run",
-		"--backend", "memory",
-		"--profile", "dev",
-		"--format", "json",
-		"--payload-size", "64",
-	).CombinedOutput()
-	if err != nil {
-		t.Fatalf("run --format json failed: %v\n%s", err, out)
-	}
-
-	if !strings.Contains(string(out), `"backend"`) {
-		t.Error("JSON output missing 'backend' field")
+	if result := decodeResult(t, run.stdout); result.Backend != "memory" || result.TotalEvents != 500 {
+		t.Errorf("result = backend %q with %d events, want memory with 500", result.Backend, result.TotalEvents)
 	}
 }
 
-func TestCLI_Compare(t *testing.T) {
+// TestCLI_Run_AliasIsReportedCanonically: results carry the canonical
+// backend name, however it was spelled.
+func TestCLI_Run_AliasIsReportedCanonically(t *testing.T) {
 	t.Parallel()
 
-	bin := buildBinary(t)
+	run := mustRunBench(t, t.TempDir(), "run", "--backend", "mem", "--profile", "dev", "--format", "json", "--quiet")
 
-	out, err := exec.Command(
-		bin, "compare",
-		"--profile", "dev",
-		"--backends", "memory",
-		"--format", "markdown",
-		"--payload-size", "64",
-	).CombinedOutput()
-	if err != nil {
-		t.Fatalf("compare failed: %v\n%s", err, out)
-	}
-
-	output := string(out)
-	if !strings.Contains(output, "Backend") {
-		t.Error("compare markdown output missing table header")
-	}
-
-	if !strings.Contains(output, "| memory") {
-		t.Error("compare markdown output missing memory row")
-	}
-}
-
-func TestCLI_UnknownProfile(t *testing.T) {
-	t.Parallel()
-
-	bin := buildBinary(t)
-
-	out, err := exec.Command(
-		bin, "run", "--backend", "memory", "--profile", "bogus",
-	).CombinedOutput()
-
-	if err == nil {
-		t.Fatal("expected non-zero exit for unknown profile")
-	}
-
-	if !strings.Contains(string(out), "unknown profile") {
-		t.Errorf("output should mention 'unknown profile': %s", out)
-	}
-}
-
-func TestCLI_UnknownBackend(t *testing.T) {
-	t.Parallel()
-
-	bin := buildBinary(t)
-
-	out, err := exec.Command(
-		bin, "run", "--backend", "bogus", "--profile", "dev",
-	).CombinedOutput()
-
-	if err == nil {
-		t.Fatal("expected non-zero exit for unknown backend")
-	}
-
-	if !strings.Contains(string(out), "unknown backend") {
-		t.Errorf("output should mention 'unknown backend': %s", out)
+	if result := decodeResult(t, run.stdout); result.Backend != "memory" {
+		t.Errorf("backend = %q, want the canonical \"memory\"", result.Backend)
 	}
 }
 
 func TestCLI_CodecCBOR(t *testing.T) {
 	t.Parallel()
 
-	bin := buildBinary(t)
+	run := mustRunBench(t, t.TempDir(), "run", "--backend", "memory", "--profile", "dev",
+		"--codec", "cbor", "--format", "json", "--payload-size", "64")
 
-	out, err := exec.Command(
-		bin, "run",
-		"--backend", "memory",
-		"--profile", "dev",
-		"--codec", "cbor",
-		"--format", "json",
-		"--payload-size", "64",
-	).CombinedOutput()
-	if err != nil {
-		t.Fatalf("run --codec cbor failed: %v\n%s", err, out)
-	}
-
-	if !strings.Contains(string(out), `"codec": "cbor"`) {
-		t.Errorf("JSON output should show cbor codec: %s", out)
+	if result := decodeResult(t, run.stdout); result.Codec != "cbor" {
+		t.Errorf("codec = %q, want cbor", result.Codec)
 	}
 }
 
+// TestCLI_WarmupFlag uses the in-memory store: benchkit v4.7.0, the pin this
+// module builds against, rejects a second warmup event on a store that
+// checks versions (fixed in benchkit on 2026-11-25).
 func TestCLI_WarmupFlag(t *testing.T) {
 	t.Parallel()
 
-	bin := buildBinary(t)
+	run := mustRunBench(t, t.TempDir(), "run", "--backend", "memory", "--profile", "dev",
+		"--warmup", "50", "--format", "json", "--payload-size", "64")
 
-	out, err := exec.Command(
-		bin, "run",
-		"--backend", "memory",
-		"--profile", "dev",
-		"--warmup", "50",
-		"--format", "json",
-		"--payload-size", "64",
-	).CombinedOutput()
-	if err != nil {
-		t.Fatalf("run --warmup 50 failed: %v\n%s", err, out)
-	}
-
-	if !strings.Contains(string(out), `"warmupEvents": 50`) {
-		t.Errorf("JSON output should show warmupEvents=50: %s", out)
+	if result := decodeResult(t, run.stdout); result.WarmupEvents != 50 {
+		t.Errorf("warmupEvents = %d, want 50", result.WarmupEvents)
 	}
 }
 
+// TestCLI_OutputFileIsCleanJSON: a report file holds exactly the report and
+// no staging leftovers.
 func TestCLI_OutputFile(t *testing.T) {
 	t.Parallel()
 
-	bin := buildBinary(t)
+	dir := t.TempDir()
+	path := filepath.Join(dir, "result.json")
 
-	tmpFile := t.TempDir() + "/result.json"
+	mustRunBench(t, t.TempDir(), "run", "--backend", "memory", "--profile", "dev",
+		"--format", "json", "--output", path, "--payload-size", "64")
 
-	out, err := exec.Command(
-		bin, "run",
-		"--backend", "memory",
-		"--profile", "dev",
-		"--format", "json",
-		"--output", tmpFile,
-		"--payload-size", "64",
-	).CombinedOutput()
-	if err != nil {
-		t.Fatalf("run --output failed: %v\n%s", err, out)
-	}
-
-	data, err := os.ReadFile(tmpFile)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("output file not readable: %v", err)
 	}
 
-	if !strings.Contains(string(data), `"backend"`) {
-		t.Error("output file missing 'backend' field")
-	}
-}
-
-func TestCLI_Compare_DiskNonZero(t *testing.T) {
-	t.Parallel()
-
-	bin := buildBinary(t)
-
-	// compare should set DiskPath per-backend so sqlite shows non-zero disk.
-	out, err := exec.Command(
-		bin, "compare",
-		"--profile", "dev",
-		"--backends", "memory,sqlite",
-		"--format", "markdown",
-		"--payload-size", "64",
-	).CombinedOutput()
-	if err != nil {
-		t.Fatalf("compare failed: %v\n%s", err, out)
+	if result := decodeResult(t, string(content)); result.Backend != "memory" {
+		t.Errorf("output file backend = %q, want memory", result.Backend)
 	}
 
-	output := string(out)
-
-	if !strings.Contains(output, "| sqlite") {
-		t.Fatalf("compare output missing sqlite row:\n%s", output)
-	}
-
-	// sqlite row should show a non-zero disk value (M, KB, B — not "0 B").
-	for line := range strings.SplitSeq(output, "\n") {
-		if strings.Contains(line, "| sqlite") {
-			if strings.Contains(line, "| 0 B |") {
-				t.Errorf("sqlite disk should be non-zero in compare:\n%s", line)
-			}
-
-			return
-		}
+	if leftovers, _ := filepath.Glob(filepath.Join(dir, "*")); len(leftovers) != 1 {
+		t.Errorf("the report directory must hold only the report, found %v", leftovers)
 	}
 }
 
 func TestCLI_Repeat(t *testing.T) {
 	t.Parallel()
 
-	bin := buildBinary(t)
+	run := mustRunBench(t, t.TempDir(), "run", "--backend", "memory", "--profile", "dev",
+		"--repeat", "3", "--payload-size", "64")
 
-	out, err := exec.Command(
-		bin, "run",
-		"--backend", "memory",
-		"--profile", "dev",
-		"--repeat", "3",
-		"--payload-size", "64",
-	).CombinedOutput()
-	if err != nil {
-		t.Fatalf("run --repeat failed: %v\n%s", err, out)
-	}
-
-	output := string(out)
-
-	if !strings.Contains(output, "median of 3 runs") {
-		t.Errorf("expected 'median of 3 runs' in output:\n%s", output)
-	}
-
-	if !strings.Contains(output, "Variation:") {
-		t.Errorf("expected per-metric 'Variation:' section in repeated run output:\n%s", output)
+	for _, want := range []string{"median of 3 runs", "Variation:"} {
+		if !strings.Contains(run.stdout, want) {
+			t.Errorf("expected %q in repeated run output:\n%s", want, run.stdout)
+		}
 	}
 }
 
 func TestCLI_RepeatBenchstatMultiSample(t *testing.T) {
 	t.Parallel()
 
-	bin := buildBinary(t)
+	run := mustRunBench(t, t.TempDir(), "run", "--backend", "memory", "--profile", "dev",
+		"--repeat", "3", "--payload-size", "64", "--format", "benchstat", "--quiet")
 
-	out, err := exec.Command(
-		bin, "run",
-		"--backend", "memory",
-		"--profile", "dev",
-		"--repeat", "3",
-		"--payload-size", "64",
-		"--format", "benchstat",
-		"--quiet",
-	).CombinedOutput()
-	if err != nil {
-		t.Fatalf("run --repeat --format benchstat failed: %v\n%s", err, out)
-	}
+	counts := map[string]int{}
 
-	counts := make(map[string]int)
-
-	for line := range strings.SplitSeq(string(out), "\n") {
-		if !strings.HasPrefix(line, "Benchmark") {
-			continue
+	for line := range strings.SplitSeq(run.stdout, "\n") {
+		if strings.HasPrefix(line, "Benchmark") {
+			counts[strings.Fields(line)[0]]++
 		}
-
-		counts[strings.Fields(line)[0]]++
 	}
 
 	if len(counts) == 0 {
-		t.Fatalf("no benchstat lines in output:\n%s", out)
+		t.Fatalf("no benchstat lines in output:\n%s", run.stdout)
 	}
 
 	for name, count := range counts {
@@ -353,60 +279,34 @@ func TestCLI_RepeatBenchstatMultiSample(t *testing.T) {
 	}
 }
 
-func TestCLI_PayloadSizesFlagConsumed(t *testing.T) {
-	t.Parallel()
-
-	bin := buildBinary(t)
-
-	// pflag blindly consumes the next token as a string flag's value.
-	// "--payload-sizes --profile stress" should detect the flag-like value
-	// and return a clear, actionable error instead of a confusing strconv error.
-	out, err := exec.Command(
-		bin, "compare", "--payload-sizes", "--profile", "stress",
-	).CombinedOutput()
-
-	if err == nil {
-		t.Fatal("expected non-zero exit when --payload-sizes consumes a flag name")
-	}
-
-	output := string(out)
-	if !strings.Contains(output, "looks like a flag name") {
-		t.Errorf("error should explain the flag-like value issue:\n%s", output)
-	}
-
-	if strings.Contains(output, "strconv.Atoi") {
-		t.Errorf("error should not leak raw strconv error:\n%s", output)
-	}
-}
-
 func TestCLI_Quiet(t *testing.T) {
 	t.Parallel()
 
-	bin := buildBinary(t)
+	run := mustRunBench(t, t.TempDir(), "run", "--backend", "memory", "--profile", "dev",
+		"--quiet", "--format", "json", "--payload-size", "64")
 
-	cmd := exec.Command(
-		bin, "run",
-		"--backend", "memory",
-		"--profile", "dev",
-		"--quiet",
-		"--format", "json",
-		"--payload-size", "64",
-	)
-
-	var stderr strings.Builder
-	cmd.Stderr = &stderr
-
-	out, err := cmd.Output()
-	if err != nil {
-		t.Fatalf("run --quiet failed: %v\nstderr: %s", err, stderr.String())
+	if run.stderr != "" {
+		t.Errorf("--quiet should suppress all stderr output, got:\n%s", run.stderr)
 	}
 
-	if stderr.Len() > 0 {
-		t.Errorf("--quiet should suppress all stderr output, got %d bytes:\n%s",
-			stderr.Len(), stderr.String())
+	if result := decodeResult(t, run.stdout); result.Backend != "memory" {
+		t.Errorf("--quiet should still produce the JSON result on stdout: %s", run.stdout)
+	}
+}
+
+// TestCLI_IgnoredFlagIsReported: a flag the backend does not act on is
+// warned about instead of being dropped in silence, even under --quiet.
+func TestCLI_IgnoredFlagIsReported(t *testing.T) {
+	t.Parallel()
+
+	run := mustRunBench(t, t.TempDir(), "run", "--backend", "memory", "--profile", "dev",
+		"--dsn", "nowhere", "--dir", "unused", "--quiet", "--format", "json")
+
+	for _, want := range []string{"warning", "--dsn", "--dir"} {
+		if !strings.Contains(run.stderr, want) {
+			t.Errorf("stderr should mention %q for an ignored flag:\n%s", want, run.stderr)
+		}
 	}
 
-	if !strings.Contains(string(out), `"backend"`) {
-		t.Error("--quiet should still produce JSON result on stdout")
-	}
+	decodeResult(t, run.stdout)
 }

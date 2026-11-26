@@ -89,7 +89,7 @@ func TestScenario_CreateOnEmptyStream(t *testing.T) {
 
 	scenario.Given[CreateTaskCmd](t, applyTask, TaskState{}).
 		When(cmd, func(s TaskState, c CreateTaskCmd) ([]event.Event, error) {
-			return decideCreate(c, s, event.Version(0))
+			return decideCreate(t.Context(), c, s, event.Version(0))
 		}).
 		ThenState(applyTask, TaskState{}, TaskState{
 			Exists: true, Title: "Write scenario", Priority: PriorityNormal,
@@ -111,7 +111,7 @@ func TestScenario_CreateTwiceIsRejected(t *testing.T) {
 		TaskState{},
 		givenCreated(t, "Duplicate", PriorityNormal)...).
 		When(cmd, func(s TaskState, c CreateTaskCmd) ([]event.Event, error) {
-			return decideCreate(c, s, event.Version(1))
+			return decideCreate(t.Context(), c, s, event.Version(1))
 		}).
 		ThenError(errTaskExists)
 }
@@ -127,7 +127,7 @@ func TestScenario_CompleteOpenTask(t *testing.T) {
 		TaskState{},
 		givenCreated(t, "Finish me", PriorityHigh)...).
 		When(cmd, func(s TaskState, c CompleteTaskCmd) ([]event.Event, error) {
-			return decideComplete(c, s, event.Version(1))
+			return decideComplete(t.Context(), c, s, event.Version(1))
 		}).
 		ThenState(applyTask, TaskState{}, TaskState{
 			Exists: true, Done: true, Title: "Finish me", Priority: PriorityHigh,
@@ -145,7 +145,7 @@ func TestScenario_CompleteTwiceIsRejected(t *testing.T) {
 		TaskState{},
 		givenDoneTask(t, "Done once", PriorityNormal)...).
 		When(cmd, func(s TaskState, c CompleteTaskCmd) ([]event.Event, error) {
-			return decideComplete(c, s, event.Version(2))
+			return decideComplete(t.Context(), c, s, event.Version(2))
 		}).
 		ThenError(errTaskDone)
 }
@@ -161,7 +161,7 @@ func TestScenario_DeleteOpenTask(t *testing.T) {
 		TaskState{},
 		givenCreated(t, "Ephemeral", PriorityNormal)...).
 		When(cmd, func(s TaskState, c DeleteTaskCmd) ([]event.Event, error) {
-			return decideDelete(c, s, event.Version(1))
+			return decideDelete(t.Context(), c, s, event.Version(1))
 		}).
 		Then(evtTaskDeleted)
 }
@@ -173,7 +173,7 @@ func TestScenario_DeleteUnknownTaskIsRejected(t *testing.T) {
 
 	scenario.Given[DeleteTaskCmd](t, applyTask, TaskState{}).
 		When(cmd, func(s TaskState, c DeleteTaskCmd) ([]event.Event, error) {
-			return decideDelete(c, s, event.Version(0))
+			return decideDelete(t.Context(), c, s, event.Version(0))
 		}).
 		ThenError(errTaskGone)
 }

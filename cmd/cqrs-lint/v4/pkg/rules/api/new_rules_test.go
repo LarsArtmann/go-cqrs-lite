@@ -230,19 +230,79 @@ func createEvent() {
 	ruletest.AssertRule(t, findings, "A014", 0)
 }
 
-// TestA014_DetectsAliasedImportCall: an aliased go-cqrs-lite import
-// must still be detected — the qualifier resolves through the import decl.
+// TestA014_DetectsAliasedImportCall: an aliased go-cqrs-lite import must
+// still be detected — the qualifier resolves through the import decl. The
+// fixture is a symbol the library really marks Deprecated.
 func TestA014_DetectsAliasedImportCall(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"events.go": ruletest.AliasedImportSource("disp",
-			"github.com/larsartmann/go-cqrs-lite/dispatcher/v4",
-			`func register(d *disp.Dispatcher) {
-	disp.Register(d, "x", nil, nil)
+		"events.go": ruletest.AliasedImportSource("cmd",
+			"github.com/larsartmann/go-cqrs-lite/command/v4",
+			`func parse(s string) (cmd.StreamType, error) {
+	return cmd.ParseAggregateType(s)
 }`,
 		),
 	})
 	findings := ruletest.RunDetector(t, api.NewA014Detector(ctx))
 	ruletest.AssertRule(t, findings, "A014", 1)
+}
+
+// TestA014_DetectsDeprecatedTypeConversion: the v3-compat type aliases are
+// deprecated too and appear as conversions in call position.
+func TestA014_DetectsDeprecatedTypeConversion(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+func conv(s string) event.AggregateType {
+	return event.AggregateType(s)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, api.NewA014Detector(ctx))
+	ruletest.AssertRule(t, findings, "A014", 1)
+}
+
+// TestA014_RegisterIsNotDeprecated: dispatcher.Register and command.Register
+// carry NO Deprecated marker in the library (dispatcher/v4/dispatcher.go,
+// command/v4/dispatcher.go); RegisterTyped is a preference coached by A004.
+// Reporting them as deprecated was a false Warning. Pins the 2026-11-26 fix.
+func TestA014_RegisterIsNotDeprecated(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4"
+)
+
+func register() error {
+	// Package-qualified on purpose: that is the form the old table matched.
+	_ = dispatcher.Register("x", nil, nil)
+	return command.Register("x", nil)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, api.NewA014Detector(ctx))
+	ruletest.AssertRule(t, findings, "A014", 0)
+}
+
+// TestA014_SiblingModuleIsNotTheModule: a same-named symbol in a module that
+// merely shares the prefix (commandlifecycle) must not match a command/ row.
+func TestA014_SiblingModuleIsNotTheModule(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
+
+func parse(s string) error {
+	_, err := commandlifecycle.ParseType(s)
+	return err
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, api.NewA014Detector(ctx))
+	ruletest.AssertRule(t, findings, "A014", 0)
 }
 
 // TestA014_NoFindingForForeignEventPackage: a consumer's OWN package named

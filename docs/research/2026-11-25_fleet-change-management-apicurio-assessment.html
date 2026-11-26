@@ -1,0 +1,2454 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Change Over Time, Without Another Service &mdash; fleet change management
+      and Apicurio Registry, assessed &mdash; go-cqrs-lite
+    </title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
+    <div class="top-bar">
+      <span>FLEET CHANGE MANAGEMENT &middot; APICURIO REGISTRY</span>
+      <span>2026-11-25</span>
+      <span>go-cqrs-lite &middot; eventcatalog-hub</span>
+    </div>
+
+    <div class="layout">
+      <!-- Sidebar TOC (hidden below 1024px; use inline .toc if you prefer) -->
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#question">01 &middot; The question, precisely</a>
+          <a href="#apicurio">02 &middot; Apicurio Registry, verified</a>
+          <a href="#assets">03 &middot; What already exists</a>
+          <a href="#findings">04 &middot; Where change management stands</a>
+          <a href="#why-not-registry">05 &middot; Why a registry does not close it</a>
+          <a href="#proposal">06 &middot; Give the hub a journal</a>
+          <a href="#do-dont">07 &middot; Do and do not</a>
+          <a href="#decisions">08 &middot; Limits and open decisions</a>
+          <a href="#references">09 &middot; Sources &amp; verification</a>
+          <a href="#appendix-spike">Appendix A &middot; Apicurio spike checklist</a>
+          <a href="#appendix-matrix">Appendix B &middot; Gate-agreement matrix</a>
+        </nav>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main">
+        <!-- Hero -->
+        <header class="hero">
+          <!-- Optional Bauhaus signature: geometric shape cluster. Remove for quieter hero. -->
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">RESEARCH &middot; 2026-11-25</div>
+          <h1>Change Over Time, Without Another Service</h1>
+          <p class="subtitle">
+            How the fleet's contracts evolve today, where change management falls
+            short, and where Apicurio Registry does and does not fit. Written for
+            the owner deciding whether to adopt a registry or fix the pipeline.
+          </p>
+          <div class="meta">
+            <span class="tag amber">Scope: 12 catalog sources</span>
+            <span class="tag">Apicurio Registry 3.3.5</span>
+            <span class="tag teal">Status: assessment, no pipeline changed</span>
+          </div>
+        </header>
+
+        <!-- Scorecard: one card per part of change management -->
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-warn">
+            <div class="score">Idle</div>
+            <div class="label">Classify: built, unexercised outside fixtures</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">2 / 12</div>
+            <div class="label">Prevent: sources with a gate workflow, none enforcing</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">Blind</div>
+            <div class="label">Detect: the hub sees no change between builds</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">None</div>
+            <div class="label">Record: no committed snapshot of contracts</div>
+          </div>
+        </section>
+
+        <!-- 00 Summary -->
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            Two questions led here. The first was whether Apicurio Registry, an
+            open-source schema and API registry, is worth using. The second was
+            whether the fleet manages change over time well, and whether another
+            service is the right fix. The answer to the second decides the first.
+          </p>
+          <p>
+            The fleet does not manage contract change over time well yet, and the
+            cause is a missing record. The hub that federates all twelve catalogs
+            rebuilds everything from scratch and keeps only the latest result. No
+            previous state is kept, so nothing can say what changed between two
+            builds, and nothing has a history to push into a registry.
+          </p>
+          <p>
+            Apicurio Registry stores versions; it does not create them. It would
+            add a service to operate without closing the gap. The gap closes with
+            a commit.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            Commit one deterministic snapshot of every source's contracts on each
+            hub build, classify the diff with the library's own classifier, and
+            render the history on the static hub. Git becomes the registry. Keep
+            Apicurio out of the runtime and out of the gates.
+          </div>
+
+          <div
+            class="table-wrap"
+            tabindex="0"
+            role="region"
+            aria-label="The four parts of change management and their state today"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Part</th>
+                  <th scope="col">State on 2026-11-25</th>
+                  <th scope="col">Decisive evidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Classify</td>
+                  <td>Built, idle</td>
+                  <td>
+                    <code>catalog/compat</code> exists; no catalog exercises it in
+                    CI (<a href="#issue-4">finding 4</a>)
+                  </td>
+                </tr>
+                <tr>
+                  <td>Prevent</td>
+                  <td>2 of 12, not enforcing</td>
+                  <td>
+                    Gate workflows in bank-sync and cqrs-htmx; secrets and branch
+                    protection still open (<a href="#issue-3">finding 3</a>)
+                  </td>
+                </tr>
+                <tr>
+                  <td>Detect</td>
+                  <td>Blind between builds</td>
+                  <td>
+                    The hub keeps no previous state; four breaking classes are
+                    asserted as invisible (<a href="#issue-2">finding 2</a>)
+                  </td>
+                </tr>
+                <tr>
+                  <td>Record</td>
+                  <td>Nothing</td>
+                  <td>
+                    No contract snapshot is committed anywhere in the hub
+                    (<a href="#issue-1">finding 1</a>)
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 01 The question -->
+        <section id="question">
+          <h2><span class="num">01</span>The question, precisely</h2>
+          <p>
+            Change management for contracts has four parts. Each answers a
+            different question, and a system can have one without the others.
+          </p>
+          <div
+            class="table-wrap"
+            tabindex="0"
+            role="region"
+            aria-label="The four parts of change management"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Part</th>
+                  <th scope="col">Question it answers</th>
+                  <th scope="col">What good looks like</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Classify</td>
+                  <td>Is this change safe for everything that already exists?</td>
+                  <td>One policy, one classifier, used by every gate</td>
+                </tr>
+                <tr>
+                  <td>Prevent</td>
+                  <td>Can a breaking change be stopped before it merges?</td>
+                  <td>
+                    A gate that runs on every source and cannot be skipped by
+                    accident
+                  </td>
+                </tr>
+                <tr>
+                  <td>Detect</td>
+                  <td>Did something change since the last known state?</td>
+                  <td>A previous state to compare against, at fleet level</td>
+                </tr>
+                <tr>
+                  <td>Record</td>
+                  <td>What changed, when, and was it deliberate?</td>
+                  <td>
+                    A history anyone can read without rebuilding old commits
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Scope</h3>
+          <ul>
+            <li>
+              <strong>In:</strong> the messages (commands, events, queries) of the
+              twelve sources the hub federates, with their payload schemas,
+              versions, producers, consumers and error surfaces, and how those are
+              classified, gated, detected and recorded.
+            </li>
+            <li>
+              <strong>Out:</strong> which version of which service ran on which
+              host when. <code>inventory.json</code> records hosts, ports and
+              health paths, not versions. That is a separate ledger (section 08).
+            </li>
+            <li>
+              <strong>Out:</strong> whether old events stay readable. That is the
+              data half, it is the strong half, and it is only summarised here.
+            </li>
+            <li>
+              <strong>Out:</strong> Apicurio Registry as a runtime schema
+              registry. It was assessed and is not recommended (section 05).
+            </li>
+          </ul>
+
+          <h3>Method</h3>
+          <p>
+            Evidence comes from the local checkouts of go-cqrs-lite,
+            eventcatalog-hub and the source repositories as they stood on this
+            machine on 2026-11-25, and from apicur.io pages fetched the same day.
+            All twelve sources were checked locally: ten as separate checkouts,
+            and mesh-billing and mesh-orders inside go-cqrs-lite's
+            <code>example/mesh-demo</code>. Every count in this report was
+            produced by a command; the commands are listed in section 09.
+          </p>
+        </section>
+
+        <!-- 02 Apicurio -->
+        <section id="apicurio">
+          <h2><span class="num">02</span>Apicurio Registry, verified</h2>
+          <p>
+            Apicurio Registry is a runtime server that stores, versions, validates
+            and governs API designs and schemas. It is an Apache-2.0 project in
+            the CNCF sandbox. The facts below come from the project's own pages.
+          </p>
+          <div
+            class="table-wrap"
+            tabindex="0"
+            role="region"
+            aria-label="Verified facts about Apicurio Registry"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Fact</th>
+                  <th scope="col">Verified value</th>
+                  <th scope="col">Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Current version</td>
+                  <td>3.3.5; a 3.4.x documentation line also exists</td>
+                  <td>apicur.io/registry</td>
+                </tr>
+                <tr>
+                  <td>License, governance</td>
+                  <td>Apache License 2.0; CNCF Sandbox project</td>
+                  <td>apicur.io</td>
+                </tr>
+                <tr>
+                  <td>Artifact types</td>
+                  <td>
+                    Avro, Protobuf, JSON Schema, OpenAPI, AsyncAPI, GraphQL,
+                    Kafka Connect, OpenRPC, Thrift, WSDL, XML, XSD, plus AI
+                    artifact types
+                  </td>
+                  <td>apicur.io/registry</td>
+                </tr>
+                <tr>
+                  <td>Content rules</td>
+                  <td>
+                    VALIDITY, COMPATIBILITY, INTEGRITY, set globally, per group or
+                    per artifact
+                  </td>
+                  <td>Rule reference</td>
+                </tr>
+                <tr>
+                  <td>Compatibility levels</td>
+                  <td>
+                    BACKWARD, FORWARD, FULL, each with a transitive variant
+                  </td>
+                  <td>Rule reference</td>
+                </tr>
+                <tr>
+                  <td>Rule maturity, JSON Schema</td>
+                  <td>
+                    Validity Full; Compatibility Full; Integrity "mapping
+                    detection not supported"
+                  </td>
+                  <td>Rule reference</td>
+                </tr>
+                <tr>
+                  <td>Rule maturity, OpenAPI</td>
+                  <td>Full, Full, Full</td>
+                  <td>Rule reference</td>
+                </tr>
+                <tr>
+                  <td>Rule maturity, AsyncAPI</td>
+                  <td>
+                    Validity "Syntax Only"; Compatibility "None"; Integrity Full
+                  </td>
+                  <td>Rule reference</td>
+                </tr>
+                <tr>
+                  <td>Storage</td>
+                  <td>
+                    PostgreSQL (recommended for production), Apache Kafka,
+                    in-memory H2; GitOps and KubernetesOps storage are
+                    experimental
+                  </td>
+                  <td>apicur.io/registry</td>
+                </tr>
+                <tr>
+                  <td>Clients</td>
+                  <td>
+                    REST API v3, web console, CLI, Maven plugin; SDKs for Java,
+                    TypeScript, Python, Go
+                  </td>
+                  <td>SDK guide</td>
+                </tr>
+                <tr>
+                  <td>Go SDK</td>
+                  <td>
+                    <code>github.com/apicurio/apicurio-registry/go-sdk/v3</code>,
+                    <code>go 1.25.0</code>, six direct
+                    <code>microsoft/kiota-*</code> modules
+                  </td>
+                  <td><code>go-sdk/go.mod</code> via the GitHub API</td>
+                </tr>
+                <tr>
+                  <td>Confluent compatibility</td>
+                  <td>
+                    Confluent Schema Registry API v7 and v8 under
+                    <code>/apis/ccompat/</code>
+                  </td>
+                  <td>apicur.io/registry</td>
+                </tr>
+                <tr>
+                  <td>GitOps storage</td>
+                  <td>
+                    Read-only; loads a local Git clone into memory with no
+                    external database; blue-green switch; validation tasks for
+                    pull requests; the <code>*-v0</code> format "might change";
+                    about 20 to 30 seconds until a commit is visible
+                  </td>
+                  <td>GitOps storage guide</td>
+                </tr>
+                <tr>
+                  <td>AI features</td>
+                  <td>
+                    Agent cards (A2A), MCP tool definitions, MCP registry, prompt
+                    templates, model schemas; experimental and disabled by
+                    default
+                  </td>
+                  <td>apicur.io/registry/ai</td>
+                </tr>
+                <tr>
+                  <td>Deployment</td>
+                  <td>Separate backend and UI container images</td>
+                  <td>Getting started</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Pages read</h3>
+          <ul>
+            <li>
+              <a
+                href="https://www.apicur.io/registry/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >apicur.io/registry</a
+              >
+              and
+              <a
+                href="https://www.apicur.io/registry/getting-started/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >its getting-started page</a
+              >
+            </li>
+            <li>
+              Rule reference:
+              <a
+                href="https://www.apicur.io/registry/docs/apicurio-registry/3.3.x/getting-started/assembly-rule-reference.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                >assembly-rule-reference.html</a
+              >
+            </li>
+            <li>
+              GitOps storage:
+              <a
+                href="https://www.apicur.io/registry/docs/apicurio-registry/3.3.x/getting-started/assembly-configuring-gitops-storage.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                >assembly-configuring-gitops-storage.html</a
+              >
+            </li>
+            <li>
+              SDKs:
+              <a
+                href="https://www.apicur.io/registry/docs/apicurio-registry/3.3.x/getting-started/assembly-using-the-registry-client.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                >assembly-using-the-registry-client.html</a
+              >
+            </li>
+            <li>
+              REST API:
+              <a
+                href="https://www.apicur.io/registry/docs/apicurio-registry/3.3.x/getting-started/assembly-managing-registry-artifacts-api.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                >assembly-managing-registry-artifacts-api.html</a
+              >
+            </li>
+            <li>
+              AI features:
+              <a
+                href="https://www.apicur.io/registry/ai/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >apicur.io/registry/ai</a
+              >
+            </li>
+          </ul>
+
+          <div class="callout callout-amber">
+            <strong>What matters for this fleet</strong>
+            No Kafka client appears in any non-archived fleet go.mod file (NATS
+            is a dependency in three other repositories, Redis in one, and both
+            are optional broker backends inside go-cqrs-lite's watermill
+            module), the serializers are Java only, and the library's default
+            codec is CBOR (ADR-0053). The strongest advertised use case does
+            not apply.
+          </div>
+
+          <p>
+            ADR-0017 listed integration with external schema registries, Apicurio
+            among them, as a possible future extension
+            (<code>docs/adr/0017-schema-registry.md:81</code>). ADR-0155 later
+            rejected a schema-registry service because it "reintroduces
+            client/server coupling the library refuses"
+            (<code>docs/adr/0155-declarative-schema-evolution-t2-t1.md:93</code>).
+            This assessment agrees with ADR-0155 for the runtime and finds no
+            governance-layer reason to reopen ADR-0017.
+          </p>
+        </section>
+
+        <!-- 03 What exists -->
+        <section id="assets">
+          <h2><span class="num">03</span>What already exists</h2>
+          <p>
+            Much of the hard part is already built. The gaps in section 04 are
+            about wiring and record-keeping, not about missing capability.
+          </p>
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>A policy-backed classifier</strong>
+                <span>
+                  <code>catalog/compat</code> walks two schema trees and
+                  classifies every difference against
+                  <code>docs/SCHEMA-COMPATIBILITY.md</code>. It names the upcast
+                  op a change owes, and only a breaking change without a version
+                  bump blocks (<code>CompatCatalog</code>,
+                  <code>catalog/v4/compat/catalog.go:22</code>). CUE subsumption
+                  was measured first and rejected at 22 of 24 fixtures, with two
+                  false "compatible" verdicts.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>A snapshot format waiting for a consumer</strong>
+                <span>
+                  <code>compat.Baseline</code> is "a committed snapshot of the
+                  payload shapes at the last release"
+                  (<code>catalog/v4/compat/baseline.go:24</code>), keyed by
+                  message ID with kind, version and schema.
+                  <code>CompareBaseline</code> classifies a catalog against it.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Evolution on the data side</strong>
+                <span>
+                  Declared upcast chains wired through
+                  <code>system.DomainConfig.Schema</code> (ADR-0155), schema
+                  fingerprints with an advisory-to-hard drift ladder, and the
+                  cqrs-lint ladder rules E021 and E022.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Changelog and deprecation surface in the catalog</strong>
+                <span>
+                  <code>Message.Changelog</code> carries entries of version, date
+                  and summary (<code>catalog/v4/types.go:147</code>) and is
+                  exported as <code>changelog.mdx</code>; messages can be marked
+                  deprecated with a reason (<code>DeprecationInfo</code>).
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>A federation with gates</strong>
+                <span>
+                  The hub merges twelve sources, lints each source and the merged
+                  tree, audits collisions against a frozen baseline, and warns
+                  when its own data goes stale.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>A base-vs-head gate recipe with a pinned agreement test</strong>
+                <span>
+                  <code>check-architecture-changes.sh</code> diffs two export
+                  trees (12 fixtures in 2 modes), and
+                  <code>check-gate-agreement.sh</code> states exactly where the
+                  two gates disagree instead of letting it be assumed.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 04 Findings -->
+        <section id="findings">
+          <h2><span class="num">04</span>Where change management stands</h2>
+          <p>Ordered by impact on the goal: knowing and governing change over time.</p>
+
+          <!-- Issue 1 -->
+          <div class="issue issue-critical" id="issue-1">
+            <span class="severity severity-critical">Blocking &middot; High impact</span>
+            <h3>Nothing records what changed over time</h3>
+            <div class="where">
+              eventcatalog-hub &middot; AGENTS.md:23 &middot; git ls-files
+            </div>
+            <p>
+              The hub's content directories are generated and gitignored; its
+              build and CI wipe and re-copy them on every run. The JSON it does
+              commit is a deployment inventory (96 services with hosts, ports and
+              health paths), project metadata, and a collision baseline. None of
+              it records which messages, versions or schemas existed at a given
+              time. The only history is each source repository's git, which
+              answers "what did the fleet look like in October" only by rebuilding
+              old commits.
+            </p>
+            <p>
+              The hub names the consequence itself. Its gate-agreement test
+              documents that "the union has no time axis".
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: commit a deterministic contract snapshot per source on every build</strong>
+              Section 06, step 1. Everything else in the recommendation depends on
+              this snapshot existing.
+            </div>
+          </div>
+
+          <!-- Issue 2 -->
+          <div class="issue issue-critical" id="issue-2">
+            <span class="severity severity-critical">Blocking &middot; High impact</span>
+            <h3>The hub cannot detect change between builds</h3>
+            <div class="where">
+              eventcatalog-hub/scripts/check-gate-agreement.sh:14
+            </div>
+            <p>
+              With no previous state, the hub's union gate sees only the current
+              merge. The agreement test pins the result: four breaking classes are
+              asserted as invisible to the hub gate (schema changed, producer
+              removed, consumer removed, error surface changed). They are visible
+              only to the per-source recipe, which exists in two sources.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: compare against the committed snapshot</strong>
+              Section 06, step 5. The four classes become checkable at the hub
+              for all twelve sources.
+            </div>
+          </div>
+
+          <!-- Issue 3 -->
+          <div class="issue issue-important" id="issue-3">
+            <span class="severity severity-important">Important &middot; Medium impact</span>
+            <h3>
+              Prevention exists for two sources and enforces in none that could be
+              verified
+            </h3>
+            <div class="where">
+              .forgejo/workflows/architecture-gate.yml in bank-sync and cqrs-htmx
+              &middot; eventcatalog-hub/TODO_LIST.md:703 &middot;
+              cqrs-htmx/TODO_LIST.md:157
+            </div>
+            <p>
+              The base-vs-head workflow is committed and on the default branch of
+              bank-sync (first commit 2026-10-28, last 2026-11-14) and of
+              cqrs-htmx (2026-10-28). The hub's backlog still lists "mint the
+              <code>HUB_GATE_TOKEN</code> secrets" as open under "blocked:
+              upstream". cqrs-htmx's backlog records that its gate skips while
+              <code>SSH_PRIVATE_KEY</code> is unset and that master has no branch
+              protection, so every check is advisory. The other ten sources have
+              no gate workflow.
+            </p>
+            <p>
+              The part of change management that stops a breaking change is the
+              least deployed part, and it hangs on two secrets and one protection
+              decision.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: finish the two open items, then make the check cheap for the rest</strong>
+              Mint the secrets and decide on branch protection once the classifier
+              agrees with the policy (finding 4). Offer the hub's committed
+              baseline as a token-free check for the remaining ten (section 06,
+              step 6).
+            </div>
+          </div>
+
+          <!-- Issue 4 -->
+          <div class="issue issue-important" id="issue-4">
+            <span class="severity severity-important">Important &middot; Medium impact</span>
+            <h3>Two classifiers disagree, and the precise one is idle</h3>
+            <div class="where">
+              docs/SCHEMA-COMPATIBILITY.md:18 &middot;
+              catalog/v4/compat/catalog.go:17 &middot;
+              eventcatalog-hub/scripts/check-architecture-changes.sh:35 &middot;
+              FEATURES.md:1074
+            </div>
+            <p>
+              The library's policy says an additive change is safe without a
+              version bump, and <code>catalog/compat</code> blocks only a breaking
+              shape change whose message version did not move. The hub's recipe
+              blocks any schema change under the same message version. The precise
+              classifier has never run on a real catalog in CI: no
+              <code>compat-baseline.json</code> is committed, so the gate
+              "exercises fixtures and <code>--self-test</code> only". The coarse
+              rule is the one wired into the two gate workflows. A policy-legal
+              added field would fail that gate.
+            </p>
+            <p>
+              Demand for the precise version exists. CV's catalog self-review lists
+              adopting a <code>compat.CompatCatalog</code> baseline as an open
+              item that "needs owner scope call".
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: one definition of "breaking"</strong>
+              Make the recipe's <code>schema_changed</code> defer to the
+              classifier (section 06, step 3) and give the classifier a committed
+              baseline (steps 1 and 2).
+            </div>
+          </div>
+
+          <!-- Issue 5 -->
+          <div class="issue issue-important" id="issue-5">
+            <span class="severity severity-important">Important &middot; Medium impact</span>
+            <h3>The changelog surface exists and nothing was found feeding it</h3>
+            <div class="where">
+              catalog/v4/types.go:147 &middot; catalog/v4/eventcatalog/writer.go:138
+            </div>
+            <p>
+              The catalog can carry per-message changelog entries and exports them
+              as <code>changelog.mdx</code>. Whether sources use this was not
+              measured: only one source export was present on disk (webphone: 8
+              resources, no changelog file). A history that depends on someone
+              remembering to write it stays sparse. Detected changes can generate
+              the factual entries, and hand-written entries stay for intent.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: generate fact entries from the snapshot diff</strong>
+              Section 06, step 4.
+            </div>
+          </div>
+
+          <!-- Issue 6 -->
+          <div class="issue issue-nice" id="issue-6">
+            <span class="severity severity-nice">Nice to have &middot; Low impact</span>
+            <h3>Stale notes found on the way</h3>
+            <div class="where">
+              bank-sync/TODO_LIST.md:947 &middot; docs/adr/0159:42 &middot; two
+              docs/planning files
+            </div>
+            <p>
+              bank-sync's backlog still opens with "Push the uncommitted
+              catalog-governance set" although its gate workflow is on
+              origin/master; the row covers several files and was not re-verified
+              item by item. The old dependency budget
+              <code>DEP_BUDGET[catalog]=5</code> is still cited in ADR-0159 and in
+              two planning documents. Those are dated records and were left
+              alone. The living note in <code>catalog/v4/AGENTS.md</code> cited
+              the same old cap and was corrected during this review (the gate
+              defines 10, and the budget is full at 10).
+            </p>
+          </div>
+        </section>
+
+        <!-- 05 Why a registry does not close it -->
+        <section id="why-not-registry">
+          <h2><span class="num">05</span>Why a registry does not close the gap</h2>
+          <p>
+            A registry answers a storage question: where do versions live so that
+            clients can fetch them? The fleet's gap sits one step earlier. The hub
+            rebuilds every tree from scratch and keeps only the result of the last
+            run, so there is no previous version to store. Pushing each run to a
+            registry would close the gap only because the push created the record.
+            The same commit in git creates the same record with no service
+            attached.
+          </p>
+          <p>
+            Once every state is committed, git already provides what the registry
+            would provide: every version retained, any two comparable, each tied
+            to a date and a commit message. What git lacks is the derived view, a
+            timeline page and a classified diff, and that is a build step.
+          </p>
+
+          <h3>Decision matrix</h3>
+          <div
+            class="table-wrap"
+            tabindex="0"
+            role="region"
+            aria-label="Decision matrix for candidate Apicurio Registry uses"
+          >
+            <table class="compare">
+              <thead>
+                <tr>
+                  <th scope="col">Candidate use</th>
+                  <th scope="col">Verdict</th>
+                  <th scope="col">Why</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    Fleet-wide index of OpenAPI, AsyncAPI and per-message JSON
+                    Schemas
+                  </td>
+                  <td>Only on a trigger</td>
+                  <td>
+                    The real gap here is that nobody searches API documents across
+                    services or fetches old versions over an API. A committed
+                    snapshot plus a static timeline covers most of it without a
+                    server. Revisit when a trigger below appears.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Runtime schema registry (Kafka serializers, Confluent API)</td>
+                  <td class="no">No</td>
+                  <td>
+                    No Kafka client in the fleet, Java-only serializers, Go types
+                    on CBOR, and ADR-0155 already rejected a registry on the data
+                    path.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Compatibility gate or second opinion</td>
+                  <td class="no">No</td>
+                  <td>
+                    Apicurio rates its AsyncAPI compatibility "None". Its JSON
+                    Schema checker would have to clear the bar CUE failed at 22 of
+                    24, and the fleet already owns a classifier that meets it.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Official Go SDK inside <code>catalog</code></td>
+                  <td class="no">No</td>
+                  <td>
+                    Six Kiota runtime modules for what would be four REST calls.
+                    The module's production dependency budget is already full.
+                    Plain <code>net/http</code> is enough if a client is ever
+                    needed, and it belongs beside the hub, not in the library.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Agent registry, MCP registry, prompt templates</td>
+                  <td>Later</td>
+                  <td>
+                    All experimental and off by default. The sibling
+                    <code>prompt-registry</code> is copy-paste documents, and the
+                    hub already serves <code>llms.txt</code> for agent consumers.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Triggers that would change the verdict</h3>
+          <ul>
+            <li>
+              A service starts producing to Kafka with Confluent-compatible
+              serializers. Apicurio implements that API and ships the Java
+              serializers.
+            </li>
+            <li>
+              Clients written outside Go need to fetch schemas at runtime by
+              identifier.
+            </li>
+            <li>
+              A second team needs a writable registry with its own review
+              workflow, instead of git.
+            </li>
+            <li>
+              The fleet wants a searchable console for OpenAPI and AsyncAPI
+              documents enough to justify running and upgrading a server for it.
+            </li>
+          </ul>
+        </section>
+
+        <!-- 06 Proposal -->
+        <section id="proposal">
+          <h2><span class="num">06</span>Recommendation: give the hub a journal</h2>
+          <p>
+            The library's own model applies to the fleet: a projection without a
+            journal cannot answer questions about the past. The hub is that
+            projection. The proposal adds the journal and changes nothing in the
+            library's runtime.
+          </p>
+          <div class="diagram">
+            <span class="node">12 sources</span>
+            <span class="arrow">&rarr;</span>
+            <span class="node">export + merge</span>
+            <span class="arrow">&rarr;</span>
+            <span class="node node-core">snapshot, committed</span>
+            <span class="arrow">&rarr;</span>
+            <span class="node node-problem">classify, red on breaking</span>
+            <span class="arrow">&rarr;</span>
+            <span class="node node-good">timeline page</span>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">1</div>
+            <div class="migration-content">
+              <h4>Commit one deterministic snapshot per source on every hub build</h4>
+              <p>
+                Record, for each message, the id, kind, version, producers,
+                consumers and a digest of its schema. Use canonical ordering so an
+                unchanged rebuild produces an empty diff. Keep it in the hub
+                repository, one file per source. The hub is the right place
+                because it already merges all twelve trees, including the two
+                exported by a Python script, so one implementation covers
+                everything. <code>compat.Baseline</code> is an existing format for
+                the Go sources; the exact file layout is an open decision
+                (section 08).
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">2</div>
+            <div class="migration-content">
+              <h4>Classify the diff on every build</h4>
+              <p>
+                Compare the new snapshot with the committed one. Red on breaking,
+                info on additive. The library policy decides what "breaking"
+                means, through <code>catalog/compat</code>.
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">3</div>
+            <div class="migration-content">
+              <h4>Make the source recipe defer to the policy</h4>
+              <p>
+                <code>schema_changed</code> should block only when the classifier
+                calls the change breaking. An added optional field stops failing
+                the two gate workflows.
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">4</div>
+            <div class="migration-content">
+              <h4>Render the history and feed the changelog</h4>
+              <p>
+                Add a timeline page to the static hub, generated from the git log
+                of the snapshots: date, source, message, class, commit. Write each
+                detected change into <code>Message.Changelog</code> as a fact
+                entry, and leave intent to hand-written entries.
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">5</div>
+            <div class="migration-content">
+              <h4>Close the four hub-blind classes</h4>
+              <p>
+                With a previous state in the repository, the hub can report schema,
+                producer, consumer and error-surface changes for all twelve
+                sources, and the four hub-side zeroes in the matrix of Appendix B
+                can be flipped.
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">6</div>
+            <div class="migration-content">
+              <h4>Offer PR-time prevention as a read</h4>
+              <p>
+                A source can compare its catalog against the hub's committed
+                baseline before pushing, using <code>CompareBaseline</code>. No
+                token, no second export, no clone of the hub.
+              </p>
+            </div>
+          </div>
+
+          <h3>What changes</h3>
+          <div
+            class="table-wrap"
+            tabindex="0"
+            role="region"
+            aria-label="Capabilities before and after the recommendation"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Capability</th>
+                  <th scope="col">Today</th>
+                  <th scope="col">After steps 1 and 2</th>
+                  <th scope="col">After steps 3 to 6</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>History of contracts</td>
+                  <td>Only in each source repository's git</td>
+                  <td>One <code>git log -p</code> answers it</td>
+                  <td>Plus a rendered timeline</td>
+                </tr>
+                <tr>
+                  <td>Breaking change at fleet level</td>
+                  <td>Invisible for four classes</td>
+                  <td>Red on every hub build</td>
+                  <td>Same, with policy-accurate classes</td>
+                </tr>
+                <tr>
+                  <td>Additive change</td>
+                  <td>
+                    Fails the source recipe as "schema changed"
+                  </td>
+                  <td>Still fails until step 3</td>
+                  <td>Passes, logged as info</td>
+                </tr>
+                <tr>
+                  <td>PR-time check</td>
+                  <td>Two sources, two secrets</td>
+                  <td>Unchanged</td>
+                  <td>Any source, against a committed baseline, no token</td>
+                </tr>
+                <tr>
+                  <td>Changelog</td>
+                  <td>Hand-written, usage unmeasured</td>
+                  <td>Unchanged</td>
+                  <td>Generated fact entries</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout callout-amber">
+            <strong>Cost and risk</strong>
+            Step 1 is one build step in the hub and needs no change in
+            go-cqrs-lite. Step 2 can start with the hub's existing structural
+            compare (changed or not) and bring in the Go classifier for
+            additive-versus-breaking once the small CLI addition in section 08
+            exists. The main risk is a red gate against never-recorded history,
+            which is why the first rollout should warn.
+          </div>
+        </section>
+
+        <!-- 07 Do and do not -->
+        <section id="do-dont">
+          <h2><span class="num">07</span>Do and do not</h2>
+
+          <h3>Recommend doing</h3>
+          <div
+            class="table-wrap"
+            tabindex="0"
+            role="region"
+            aria-label="Recommended actions"
+          >
+            <table class="compare">
+              <thead>
+                <tr>
+                  <th scope="col">Do</th>
+                  <th scope="col">Why</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="yes">
+                    Commit a deterministic contract snapshot per source on every
+                    hub build
+                  </td>
+                  <td>
+                    Without a previous state, nothing can be detected, classified
+                    or recorded.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="yes">
+                    Classify diffs with <code>catalog/compat</code>, and let
+                    <code>docs/SCHEMA-COMPATIBILITY.md</code> be the only
+                    definition of "breaking"
+                  </td>
+                  <td>
+                    One policy, one classifier. It also gives the idle gate the
+                    real catalog it was built for.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="yes">
+                    Make the recipe's <code>schema_changed</code> defer to that
+                    classifier
+                  </td>
+                  <td>
+                    A gate that fails policy-legal changes gets re-baselined until
+                    it is noise.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="yes">Render a timeline from the committed history</td>
+                  <td>
+                    History nobody can read is not change management.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="yes">
+                    Generate changelog fact entries from detected changes
+                  </td>
+                  <td>Hand-written entries stay for intent.</td>
+                </tr>
+                <tr>
+                  <td class="yes">
+                    Finish the two open gate items (secrets, branch protection)
+                    after the classifier agrees with the policy
+                  </td>
+                  <td>
+                    Enforcing a gate that disagrees with the policy would enforce
+                    the wrong rule.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="yes">
+                    Keep Apicurio as a noted option and revisit on a trigger
+                  </td>
+                  <td>
+                    Section 05 lists the triggers. None is present today.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Recommend not doing</h3>
+          <div
+            class="table-wrap"
+            tabindex="0"
+            role="region"
+            aria-label="Actions recommended against"
+          >
+            <table class="compare">
+              <thead>
+                <tr>
+                  <th scope="col">Do not</th>
+                  <th scope="col">Why</th>
+                  <th scope="col">Instead</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="no">Put a registry on the runtime path</td>
+                  <td>ADR-0155 already rejected the coupling.</td>
+                  <td>Keep upcast chains in-process.</td>
+                </tr>
+                <tr>
+                  <td class="no">
+                    Let Apicurio's compatibility rules replace or duplicate the
+                    gate
+                  </td>
+                  <td>
+                    AsyncAPI compatibility is "None"; JSON Schema fidelity is
+                    unmeasured here; CUE set the precedent at 22 of 24.
+                  </td>
+                  <td>Use <code>catalog/compat</code>.</td>
+                </tr>
+                <tr>
+                  <td class="no">Import the Apicurio Go SDK into <code>catalog</code></td>
+                  <td>
+                    Six Kiota runtime modules for four REST calls, in a module
+                    whose production budget is full.
+                  </td>
+                  <td>
+                    Plain <code>net/http</code>, beside the hub, if a client is
+                    ever needed.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="no">Make any registry the source of truth</td>
+                  <td>It would split truth with git.</td>
+                  <td>Git stays authoritative.</td>
+                </tr>
+                <tr>
+                  <td class="no">
+                    Depend on Apicurio's experimental features (GitOps storage,
+                    agent and MCP registry)
+                  </td>
+                  <td>
+                    Off by default, and the GitOps format "might change".
+                  </td>
+                  <td>Wait for stable status.</td>
+                </tr>
+                <tr>
+                  <td class="no">Turn the gate red on day one</td>
+                  <td>
+                    It would fire on a history that was never recorded.
+                  </td>
+                  <td>Warn for one cycle, then red.</td>
+                </tr>
+                <tr>
+                  <td class="no">
+                    Build the deployment ledger in the same step
+                  </td>
+                  <td>Different data, different owner question.</td>
+                  <td>Decide separately (section 08).</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 08 Limits and open decisions -->
+        <section id="decisions">
+          <h2><span class="num">08</span>Limits and open decisions</h2>
+
+          <h3>Limits of this assessment</h3>
+          <ul>
+            <li>
+              Hub-side detection happens after a source's default branch moved.
+              Stopping a change before merge still needs a per-source check.
+            </li>
+            <li>
+              The classifier split is read from the two rule texts. The two tools
+              were not run on the same fixture.
+            </li>
+            <li>
+              "Enforcing in none" rests on two open backlog rows and a
+              branch-protection check dated 2026-10-27. The secrets themselves
+              are server-side state and cannot be inspected from a checkout.
+            </li>
+            <li>
+              Changelog usage was measured on the one source export present on
+              disk, not across all twelve.
+            </li>
+            <li>
+              The hub's published <code>dist</code> branch was not inspected. Any
+              history kept there is unverified.
+            </li>
+            <li>
+              One search error was caught during this review. The first pass
+              skipped hidden workflow directories and reported no gate workflow
+              anywhere. The numbers here come from the corrected pass.
+            </li>
+          </ul>
+
+          <h3>Open decisions for the owner</h3>
+          <div
+            class="table-wrap"
+            tabindex="0"
+            role="region"
+            aria-label="Open decisions"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Decision</th>
+                  <th scope="col">Options</th>
+                  <th scope="col">Recommendation</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Where snapshots live</td>
+                  <td>Hub repository, <code>dist</code> branch, or each source repository</td>
+                  <td>Hub repository: one place, already rebuilt from all sources</td>
+                </tr>
+                <tr>
+                  <td>First rollout</td>
+                  <td>Warn only, or red immediately</td>
+                  <td>Warn for one cycle, then red</td>
+                </tr>
+                <tr>
+                  <td>Classification plumbing</td>
+                  <td>
+                    A proposed <code>catalog-compat</code> subcommand for two
+                    schema files or two baselines (it does not exist today), or
+                    keep the hub's Python compare for detection and call Go for
+                    the ambiguous class
+                  </td>
+                  <td>
+                    Add the subcommand; <code>Compat</code> and
+                    <code>CompareBaseline</code> already exist
+                  </td>
+                </tr>
+                <tr>
+                  <td>Gate secrets and branch protection</td>
+                  <td>Already owner-gated in the hub and cqrs-htmx backlogs</td>
+                  <td>Decide after the classifier agrees with the policy</td>
+                </tr>
+                <tr>
+                  <td>Apicurio spike</td>
+                  <td>Run the checklist in Appendix A, or skip</td>
+                  <td>Skip until a trigger in section 05 appears</td>
+                </tr>
+                <tr>
+                  <td>Deployment history</td>
+                  <td>Separate ledger, or none</td>
+                  <td>Separate decision, not part of this work</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 09 Sources -->
+        <section id="references">
+          <h2><span class="num">09</span>Sources &amp; verification</h2>
+          <p>
+            Status values: <strong>verified</strong> means read or counted in a
+            local checkout on 2026-11-25; <strong>primary</strong> means fetched
+            from the project's own site the same day; <strong>derived</strong>
+            means computed by reproducing a rule, with the rule's own tool not
+            executed; <strong>not verified</strong> means it could not be checked
+            from here.
+          </p>
+          <div
+            class="table-wrap"
+            tabindex="0"
+            role="region"
+            aria-label="Evidence table"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Claim</th>
+                  <th scope="col">Source</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>The hub federates 12 sources</td>
+                  <td><code>eventcatalog-hub/sources.json</code></td>
+                  <td>verified, counted</td>
+                </tr>
+                <tr>
+                  <td>Generated hub content is gitignored and wiped on every run</td>
+                  <td><code>eventcatalog-hub/AGENTS.md:23</code></td>
+                  <td>verified</td>
+                </tr>
+                <tr>
+                  <td>No contract snapshot is committed in the hub's main branch</td>
+                  <td><code>git -C eventcatalog-hub ls-files</code></td>
+                  <td>verified; <code>dist</code> branch not inspected</td>
+                </tr>
+                <tr>
+                  <td><code>inventory.json</code> is a deployment inventory of 96 services</td>
+                  <td><code>eventcatalog-hub/inventory.json</code></td>
+                  <td>verified, counted</td>
+                </tr>
+                <tr>
+                  <td>Four breaking classes are invisible to the hub gate</td>
+                  <td><code>eventcatalog-hub/scripts/check-gate-agreement.sh:14</code></td>
+                  <td>verified, read; test not executed</td>
+                </tr>
+                <tr>
+                  <td>The source recipe treats any schema change under one version as breaking</td>
+                  <td>
+                    <code>eventcatalog-hub/scripts/check-architecture-changes.sh:35</code>,
+                    <code>README.md:546</code>
+                  </td>
+                  <td>verified, read</td>
+                </tr>
+                <tr>
+                  <td>Gate workflow is on the default branch of bank-sync and cqrs-htmx</td>
+                  <td>
+                    <code>git cat-file -e origin/master:.forgejo/workflows/architecture-gate.yml</code>
+                    in both repositories
+                  </td>
+                  <td>verified</td>
+                </tr>
+                <tr>
+                  <td>The other ten sources have no gate workflow</td>
+                  <td>Workflow directories of eight checkouts and of go-cqrs-lite</td>
+                  <td>verified</td>
+                </tr>
+                <tr>
+                  <td>Gate secrets are not minted; the check is advisory</td>
+                  <td>
+                    <code>eventcatalog-hub/TODO_LIST.md:703</code>,
+                    <code>cqrs-htmx/TODO_LIST.md:157</code>
+                  </td>
+                  <td>not verified directly</td>
+                </tr>
+                <tr>
+                  <td>Additive changes are safe without a version bump</td>
+                  <td><code>docs/SCHEMA-COMPATIBILITY.md:18</code></td>
+                  <td>verified</td>
+                </tr>
+                <tr>
+                  <td>
+                    <code>catalog/compat</code> blocks only a breaking change whose version did not move
+                  </td>
+                  <td><code>catalog/v4/compat/catalog.go:17</code></td>
+                  <td>verified</td>
+                </tr>
+                <tr>
+                  <td>No compat baseline is committed; the gate runs on fixtures only</td>
+                  <td><code>FEATURES.md:1074</code></td>
+                  <td>verified</td>
+                </tr>
+                <tr>
+                  <td>CUE subsumption scored 22 of 24</td>
+                  <td><code>catalog/v4/compat/doc.go:14</code></td>
+                  <td>verified as recorded</td>
+                </tr>
+                <tr>
+                  <td>Changelog and deprecation fields exist in the catalog</td>
+                  <td>
+                    <code>catalog/v4/types.go:144</code>,
+                    <code>catalog/v4/eventcatalog/writer.go:138</code>
+                  </td>
+                  <td>verified</td>
+                </tr>
+                <tr>
+                  <td>The catalog production dependency budget is full</td>
+                  <td>
+                    <code>scripts/check-module-layers.sh:341</code> and
+                    <code>catalog/v4/go.mod</code>
+                  </td>
+                  <td>derived: 12 direct, 10 counted, budget 10</td>
+                </tr>
+                <tr>
+                  <td>CV lists adopting a compat baseline as an open item</td>
+                  <td>
+                    <code>CV/docs/status/2026-11-17_19-05_catalog-wave-self-review-and-full-status.md:124</code>
+                  </td>
+                  <td>verified</td>
+                </tr>
+                <tr>
+                  <td>No Kafka client in the fleet</td>
+                  <td>
+                    Search for five client libraries over <code>go.mod</code>
+                    files, excluding <code>archived/</code> and
+                    <code>ci-siblings/</code>
+                  </td>
+                  <td>verified for those five libraries</td>
+                </tr>
+                <tr>
+                  <td>ADR-0017 and ADR-0155 positions</td>
+                  <td>The two ADR files, lines 81 and 93</td>
+                  <td>verified</td>
+                </tr>
+                <tr>
+                  <td>Apicurio facts in section 02</td>
+                  <td>
+                    <code>apicur.io</code>, <code>apicur.io/registry</code>,
+                    <code>apicur.io/registry/ai</code>, the rule reference, the
+                    GitOps storage guide, the SDK guide, getting started
+                  </td>
+                  <td>primary, fetched 2026-11-25</td>
+                </tr>
+                <tr>
+                  <td>Go SDK module path, Go version, Kiota modules</td>
+                  <td>
+                    <code>go-sdk/go.mod</code> of
+                    <code>Apicurio/apicurio-registry</code> via the GitHub API
+                  </td>
+                  <td>primary, fetched 2026-11-25</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Evidence commands</h3>
+          <p>Run from the directory that holds all checkouts.</p>
+          <pre><code>cd ~/projects
+
+# hub: sources, tracked state, the blind classes
+python3 -c "import json; print(len(json.load(open('eventcatalog-hub/sources.json'))['sources']))"   # 12
+git -C eventcatalog-hub ls-files
+sed -n '1,30p' eventcatalog-hub/scripts/check-gate-agreement.sh
+
+# sources: is the gate workflow on the default branch?
+git -C bank-sync cat-file -e origin/master:.forgejo/workflows/architecture-gate.yml
+git -C cqrs-htmx cat-file -e origin/master:.forgejo/workflows/architecture-gate.yml
+ls bank-sync/.forgejo/workflows crm/.forgejo/workflows crm/.github/workflows
+
+# library: policy, classifier, idle baseline
+sed -n '18,28p' go-cqrs-lite/docs/SCHEMA-COMPATIBILITY.md
+rg -n "KindVersionNotBumped" go-cqrs-lite/catalog/v4/compat/catalog.go
+rg -n "compat-baseline.json" go-cqrs-lite/FEATURES.md
+
+# fleet: Kafka clients in go.mod files (expected: no output)
+rg -l -i "confluent-kafka-go|segmentio/kafka-go|IBM/sarama|franz-go|twmb/franz" \
+  --glob go.mod --glob '!archived/**' --glob '!ci-siblings/**' \
+  --glob '!**/vendor/**' --glob '!**/node_modules/**' .
+
+# fleet: NATS and Redis requires (three and one repositories, plus watermill)
+rg -n -i "nats-io/nats.go|redis/go-redis" --glob go.mod --glob '!archived/**' \
+  --glob '!ci-siblings/**' --glob '!**/vendor/**' \
+  --glob '!**/node_modules/**' .</code></pre>
+
+          <div class="callout callout-amber">
+            <strong>Checked against the report-integrity list</strong>
+            Every symbol named as today's API was searched in the source tree.
+            Every number was recounted by command. The evidence commands in this
+            section were run; the two commands in Appendix A are a sketch from
+            the vendor's documentation and were not executed. The one proposed
+            API (a <code>catalog-compat</code> subcommand) is labelled as not
+            existing. No render screenshot was captured: launching a browser is
+            blocked in this session, so layout was checked mechanically (tag
+            balance, stylesheet byte-identical to the template, every class
+            defined by it, all in-page links resolving).
+          </div>
+        </section>
+
+        <!-- Appendix A -->
+        <section id="appendix-spike">
+          <h2><span class="num">&#9670;</span>Appendix A &middot; Apicurio spike checklist</h2>
+          <p>
+            Only relevant if a trigger in section 05 appears, or if the owner
+            wants first-hand evidence before closing the question.
+          </p>
+          <pre><code>docker run -it -p 8080:8080 apicurio/apicurio-registry:3.3.5   # in-memory, no persistence
+
+curl -X POST localhost:8080/apis/registry/v3/groups/bank-sync/artifacts \
+  -H "Content-Type: application/json" \
+  --data @artifact.json        # artifactId, artifactType, firstVersion.content</code></pre>
+          <ol>
+            <li>
+              Does it accept the AsyncAPI 3.0 output this library generates? Its
+              AsyncAPI validity check is syntax only.
+            </li>
+            <li>
+              Does the console render it usefully?
+            </li>
+            <li>
+              Does label search (<code>/apis/registry/v3/search/artifacts?labels=</code>)
+              answer a question the hub cannot?
+            </li>
+            <li>
+              Does re-posting identical content stay a no-op? CI must not create
+              a version per run.
+            </li>
+          </ol>
+          <p>
+            If any of the first three fails, drop it. The hub's breaking-change
+            recipe and collision audit already cover the governance side.
+          </p>
+        </section>
+
+        <!-- Appendix B -->
+        <section id="appendix-matrix">
+          <h2><span class="num">&#9670;</span>Appendix B &middot; Gate-agreement matrix</h2>
+          <p>
+            Copied from the header of
+            <code>eventcatalog-hub/scripts/check-gate-agreement.sh</code>. 1 means
+            the gate reports the class, 0 means it cannot see it.
+          </p>
+          <div
+            class="table-wrap"
+            tabindex="0"
+            role="region"
+            aria-label="Gate agreement matrix"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Class</th>
+                  <th scope="col">Source gate</th>
+                  <th scope="col">Hub gate</th>
+                  <th scope="col">Why they differ (as recorded)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>events_removed</code></td>
+                  <td>1</td>
+                  <td>1</td>
+                  <td>The consumer's receives dangles</td>
+                </tr>
+                <tr>
+                  <td><code>schema_changed</code></td>
+                  <td>1</td>
+                  <td>0</td>
+                  <td>The union has no time axis</td>
+                </tr>
+                <tr>
+                  <td><code>producers_removed</code></td>
+                  <td>1</td>
+                  <td>0</td>
+                  <td>A shrinking list leaves no dangling reference</td>
+                </tr>
+                <tr>
+                  <td><code>consumers_removed</code></td>
+                  <td>1</td>
+                  <td>0</td>
+                  <td>Same</td>
+                </tr>
+                <tr>
+                  <td><code>error_surface_changed</code></td>
+                  <td>1</td>
+                  <td>0</td>
+                  <td>The union gate never reads a manifest</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p>
+            Generated 2026-11-25 &middot; Evidence: go-cqrs-lite at
+            <code>d76a882ce</code>, eventcatalog-hub at <code>930d656</code>,
+            source checkouts as found on this machine &middot; Apicurio facts
+            fetched from apicur.io the same day &middot; Every count was produced
+            by a command; derived and unverified items are labelled in section 09
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

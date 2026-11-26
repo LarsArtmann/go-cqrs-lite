@@ -450,9 +450,12 @@ func (r *runner) warmup(ctx context.Context) (int, error) {
 	var version event.Version
 
 	for i := range r.config.Warmup {
+		// version is the stream's current version; the new event carries the
+		// next one. Stores that enforce the Save contract (every SQL store)
+		// reject anything else.
 		evt, err := event.New(
 			benchEventType, aggID, benchStreamType,
-			version.Add(uint(i+1)), r.gen.Payload(),
+			version.Add(1), r.gen.Payload(),
 			event.WithCodec(r.codec),
 		)
 		if err != nil {

@@ -1,51 +1,76 @@
 package main
 
 import (
+	"fmt"
 	"os"
-	"runtime/pprof"
 	"slices"
+	"runtime/pprof"
 )
 
-// startProfiling wires the --cpuprofile/--memprofile flags onto a handler:
-// CPU profiling starts NOW and the returned stop func (intended for
-// `defer startProfiling(...)()`) stops it and writes the heap profile when
-// the handler returns — matching the defers this extracted.
-func startProfiling(cpuProfile, memProfile string) func() {
-	var teardown []func()
+// startProfiling wires the --cpuprofile/--memprofile flags onto a command:
+// CPU profiling starts now and the returned stop func (meant for
+// `defer stop()`) stops it and writes the heap profile when the command
+// returns. An error means profiling could not start and nothing is running.
+func startProfiling(cpuProfile, memProfile string) (func(), error) {
+	var (
+		teardown []func()
+		err      error
+	)
 
 	if cpuProfile != "" {
-		f, err := os.Create(cpuProfile)
+		teardown, err = startCPUProfile(cpuProfile, teardown)
 		if err != nil {
-			fatalf("create cpu profile: %v", err)
+			return nil, err
 		}
-
-		if err := pprof.StartCPUProfile(f); err != nil {
-			fatalf("start cpu profile: %v", err)
-		}
-
-		teardown = append(teardown,
-			func() { _ = f.Close() },
-			pprof.StopCPUProfile,
-		)
 	}
 
 	if memProfile != "" {
-		teardown = append(teardown, func() {
-			f, err := os.Create(memProfile)
-			if err != nil {
-				fatalf("create mem profile: %v", err)
-			}
-
-			defer f.Close()
-
-			_ = pprof.WriteHeapProfile(f)
-		})
+		teardown = append(teardown, func() { writeHeapProfile(memProfile) })
 	}
 
 	return func() {
-		// Reverse order — the same LIFO a defer stack would give.
+		// Reverse order: the LIFO a defer stack would give. The heap profile
+		// is written first, then the CPU profile is stopped, then its file
+		// is closed (a close before the stop leaves an EMPTY CPU profile).
 		for _, fn := range slices.Backward(teardown) {
 			fn()
 		}
+	}, nil
+}
+
+// startCPUProfile starts CPU profiling into cpuProfile and registers the
+// matching teardown on teardown.
+func startCPUProfile(cpuProfile string, teardown []func()) ([]func(), error) {
+	file, err := os.Create(cpuProfile)
+	if err != nil {
+		return nil, fmt.Errorf("%w: --cpuprofile %s: %w", errFlagValue, cpuProfile, err)
+	}
+
+	if err := pprof.StartCPUProfile(file); err != nil {
+		_ = file.Close()
+
+		return nil, fmt.Errorf("start CPU profile: %w", err)
+	}
+
+	return append(teardown,
+		func() { _ = file.Close() },
+		pprof.StopCPUProfile,
+	), nil
+}
+
+// writeHeapProfile writes the heap profile to path. It runs during teardown,
+// when nothing can act on the failure, so it is reported as a warning.
+func writeHeapProfile(path string) {
+	file, err := os.Create(path)
+	if err != nil {
+		warnf("--memprofile %s: %v", path, err)
+
+		return
+	}
+
+	defer func() { _ = file.Close() }()
+
+	if err := pprof.WriteHeapProfile(file); err != nil {
+		warnf("--memprofile %s: %v", path, err)
 	}
 }

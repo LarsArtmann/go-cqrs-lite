@@ -5,20 +5,17 @@ import (
 	"io"
 	"maps"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/larsartmann/go-output"
-	"github.com/larsartmann/go-output/delimited"
 	"github.com/larsartmann/go-output/markdown"
 	gotable "github.com/larsartmann/go-output/table"
 
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 )
 
-// ── format resolution ──
-
+// Report formats, as chosen by --format.
 const (
 	formatAuto      = "auto"
 	formatTable     = "table"
@@ -31,438 +28,59 @@ const (
 	formatManifest  = "manifest"
 )
 
-// resolveFormat picks "table" (styled terminal) when stdout is a terminal
-// and "text" (plain) otherwise. Explicit format choices pass through.
-func resolveFormat(format string) string {
-	if format == "" || format == formatAuto {
-		if output.ColorModeAuto.ShouldColor() {
-			return formatTable
-		}
-
-		return formatText
-	}
-
-	return format
+// reportWriter renders into a report target with the target's color mode: a
+// terminal may use color, a file never does.
+type reportWriter struct {
+	w     io.Writer
+	color output.ColorMode
 }
 
-// writeMarkdownTable renders a go-output table as a markdown pipe table —
-// the shared tail of every --format markdown case (TrimPrefix drops the
-// leading border pipe go-output emits).
-func writeMarkdownTable(w io.Writer, data *output.Table) {
+// render writes a report into the target.
+func (t reportTarget) render(report func(out reportWriter) error) error {
+	return t.write(func(w io.Writer) error {
+		return report(reportWriter{w: w, color: t.color()})
+	})
+}
+
+// table writes a styled table.
+func (r reportWriter) table(data *output.Table) error {
+	if err := gotable.Write(r.w, data, gotable.WithColorMode(r.color)); err != nil {
+		return fmt.Errorf("%w: %w", errRender, err)
+	}
+
+	return nil
+}
+
+// markdownTable writes a go-output table as a markdown pipe table (the
+// leading border pipe go-output emits is dropped).
+func (r reportWriter) markdownTable(data *output.Table) error {
 	rendered, err := markdown.Render(data, markdown.WithColorMode(output.ColorModeNever))
 	if err != nil {
-		fatalf("render markdown: %v", err)
+		return fmt.Errorf("%w: %w", errRender, err)
 	}
 
-	rendered = strings.TrimPrefix(rendered, "|")
-	fmt.Fprint(w, rendered)
-	fmt.Fprintln(w)
+	fmt.Fprint(r.w, strings.TrimPrefix(rendered, "|"))
+	fmt.Fprintln(r.w)
+
+	return nil
 }
 
-// ── comparison rendering ──
-
-func renderComparison(w io.Writer, format string, results map[string]*benchkit.Result) {
-	switch format {
-	case formatJSON:
-		if err := benchkit.WriteComparisonJSON(w, results); err != nil {
-			fatalf("write JSON: %v", err)
-		}
-	case formatTable:
-		data := buildComparisonTable(results)
-		if err := gotable.Write(w, data, gotable.WithColorMode(output.ColorModeAuto)); err != nil {
-			fatalf("render table: %v", err)
-		}
-
-		if summary := comparisonWinnerSummary(results); summary != "" {
-			fmt.Fprintf(w, "\n%s\n", summary)
-		}
-
-		benchkit.PrintComparisonVariation(w, results)
-	case formatMarkdown:
-		data := buildComparisonTable(results)
-		writeMarkdownTable(w, data)
-		benchkit.PrintComparisonVariation(w, results)
-	case formatCSV:
-		data := buildComparisonTable(results)
-
-		if err := delimited.WriteCSV(w, data); err != nil {
-			fatalf("render CSV: %v", err)
-		}
-	case formatTSV:
-		data := buildComparisonTable(results)
-
-		if err := delimited.WriteTSV(w, data); err != nil {
-			fatalf("render TSV: %v", err)
-		}
-	default:
-		benchkit.PrintComparison(w, results)
-	}
+// writeError wraps a failed report write.
+func writeError(err error) error {
+	return fmt.Errorf("%w: %w", errRender, err)
 }
 
-func buildComparisonTable(results map[string]*benchkit.Result) *output.Table {
-	headers := []string{
-		"Backend", "Write P50", "Write P99", "Load P50", "Load P99",
-		"Cold P50", "GC Max Pause", "Tail Ratio", "Allocs/Op",
-		"Write Amp", "CoV %", "Noisy", "RAM", "Heap", "Disk",
-	}
+// ── formatting helpers ─
 
-	t := output.NewTable(headers)
-
-	empty := make([]string, len(headers)-1)
-	for i := range empty {
-		empty[i] = "-"
-	}
-
-	for _, name := range sortedResultKeys(results) {
-		r := results[name]
-
-		if r == nil {
-			t.AddRow(append([]string{name, "FAILED: no result"}, empty[1:]...))
-
-			continue
-		}
-
-		if r.Error != "" {
-			t.AddRow(
-				append([]string{name, "FAILED: " + benchkit.Truncate(r.Error, 30)}, empty[1:]...),
-			)
-
-			continue
-		}
-
-		t.AddRow([]string{
-			name,
-			fmtDur(r.WriteLatency.P50),
-			fmtDur(r.WriteLatency.P99),
-			fmtDur(r.LoadLatency.P50),
-			fmtDur(r.LoadLatency.P99),
-			fmtDur(r.ColdReadLatency.P50),
-			fmtGCDash(r.GCMaxPause),
-			fmtRatioDash(r.TailRatio),
-			fmtAllocDash(r.AllocsPerOp),
-			fmtRatioDash(r.Disk.WriteAmplification),
-			fmtCoVDash(r.RepeatCoV),
-			fmtNoisyCount(r),
-			fmtBytes(r.Memory.Resident),
-			fmtBytes(r.Memory.After),
-			fmtBytes(uint64(r.Disk.DatabaseBytes)),
-		})
-	}
-
-	return t
-}
-
-// fmtNoisyCount renders a backend's noisy-metric count (metrics whose
-// cross-run CoV exceeded the threshold). "-" when the run carries no
-// dispersion data: a single-run compare has no stability verdict to show,
-// and showing 0 would fake one.
-func fmtNoisyCount(r *benchkit.Result) string {
-	if len(r.MetricVariation) == 0 {
-		return "-"
-	}
-
-	return strconv.Itoa(r.NoisyMetricCount())
-}
-
-// comparisonWinnerSummary finds the best backend per key metric and returns
-// a one-line summary. Returns empty when fewer than 2 valid results.
-func comparisonWinnerSummary(results map[string]*benchkit.Result) string {
-	names := sortedResultKeys(results)
-
-	type metricBest struct {
-		label string
-		name  string
-		val   string
-	}
-
-	var bests []metricBest
-
-	findMinDur := func(label string, get func(r *benchkit.Result) (time.Duration, bool)) {
-		var (
-			winner string
-			minVal time.Duration
-		)
-
-		found := false
-
-		for _, name := range names {
-			r := results[name]
-			if r == nil || r.Error != "" {
-				continue
-			}
-
-			v, ok := get(r)
-			if !ok || v <= 0 {
-				continue
-			}
-
-			if !found || v < minVal {
-				minVal = v
-				winner = name
-				found = true
-			}
-		}
-
-		if found {
-			bests = append(bests, metricBest{label, winner, fmtDur(minVal)})
-		}
-	}
-
-	findMinNum := func(label string, get func(r *benchkit.Result) (float64, bool), format func(float64) string) {
-		var (
-			winner string
-			minVal float64
-		)
-
-		found := false
-
-		for _, name := range names {
-			r := results[name]
-			if r == nil || r.Error != "" {
-				continue
-			}
-
-			v, ok := get(r)
-			if !ok || v <= 0 {
-				continue
-			}
-
-			if !found || v < minVal {
-				minVal = v
-				winner = name
-				found = true
-			}
-		}
-
-		if found {
-			bests = append(bests, metricBest{label, winner, format(minVal)})
-		}
-	}
-
-	findMinDur("writes", func(r *benchkit.Result) (time.Duration, bool) {
-		return r.WriteLatency.P50, r.WriteLatency.P50 > 0
-	})
-
-	findMinDur("reads", func(r *benchkit.Result) (time.Duration, bool) {
-		return r.LoadLatency.P50, r.LoadLatency.P50 > 0
-	})
-
-	findMinNum("allocs", func(r *benchkit.Result) (float64, bool) {
-		return r.AllocsPerOp, r.AllocsPerOp > 0
-	}, func(v float64) string { return fmt.Sprintf("%.0f", v) })
-
-	findMinNum("heap", func(r *benchkit.Result) (float64, bool) {
-		return float64(r.Memory.After), r.Memory.After > 0
-	}, func(v float64) string { return fmtBytes(uint64(v)) })
-
-	findMinDur("GC pause", func(r *benchkit.Result) (time.Duration, bool) {
-		return r.GCMaxPause, r.GCMaxPause > 0
-	})
-
-	if len(bests) == 0 {
-		return ""
-	}
-
-	parts := make([]string, len(bests))
-	for i, b := range bests {
-		parts[i] = fmt.Sprintf("%s: %s (%s)", b.label, b.name, b.val)
-	}
-
-	return "Best — " + strings.Join(parts, " | ")
-}
-
-// ── sweep rendering ──
-
-func renderSweep(w io.Writer, format string, results []benchkit.SweepResult) {
-	switch format {
-	case formatJSON:
-		if err := benchkit.WriteSweepJSON(w, results); err != nil {
-			fatalf("write JSON: %v", err)
-		}
-	case formatTable:
-		data := buildSweepTable(results)
-		if err := gotable.Write(w, data, gotable.WithColorMode(output.ColorModeAuto)); err != nil {
-			fatalf("render table: %v", err)
-		}
-	case formatMarkdown:
-		data := buildSweepTable(results)
-		writeMarkdownTable(w, data)
-	case formatCSV:
-		data := buildSweepTable(results)
-
-		if err := delimited.WriteCSV(w, data); err != nil {
-			fatalf("render CSV: %v", err)
-		}
-	case formatTSV:
-		data := buildSweepTable(results)
-
-		if err := delimited.WriteTSV(w, data); err != nil {
-			fatalf("render TSV: %v", err)
-		}
-	default:
-		benchkit.PrintSweep(w, results)
-	}
-}
-
-func buildSweepTable(results []benchkit.SweepResult) *output.Table {
-	if len(results) == 0 {
-		return output.NewTable(nil)
-	}
-
-	param := benchkit.TitleCase(results[0].Parameter)
-	headers := []string{
-		param, "Write P50", "Write P99", "Load P50",
-		"GC Max Pause", "Allocs/Op", "Write Amp", "Heap",
-	}
-
-	// CoV appears exactly when the sweep ran with --repeat N: it is the
-	// cross-run dispersion of each point's own repeats, not a new metric.
-	withCoV := false
-
-	for _, sr := range results {
-		if sr.Result != nil && sr.Result.RepeatCount > 1 {
-			withCoV = true
-
-			break
-		}
-	}
-
-	if withCoV {
-		headers = append(headers, "CoV %")
-	}
-
-	t := output.NewTable(headers)
-
-	empty := make([]string, len(headers)-1)
-	for i := range empty {
-		empty[i] = "-"
-	}
-
-	for _, sr := range results {
-		r := sr.Result
-		if r == nil {
-			t.AddRow(
-				append([]string{strconv.Itoa(sr.Value), "FAILED: no result"}, empty[1:]...),
-			)
-
-			continue
-		}
-
-		if r.Error != "" {
-			t.AddRow(
-				append(
-					[]string{strconv.Itoa(sr.Value), "FAILED: " + benchkit.Truncate(r.Error, 30)},
-					empty[1:]...),
-			)
-
-			continue
-		}
-
-		row := []string{
-			strconv.Itoa(sr.Value),
-			fmtDur(r.WriteLatency.P50),
-			fmtDur(r.WriteLatency.P99),
-			fmtDur(r.LoadLatency.P50),
-			fmtGCDash(r.GCMaxPause),
-			fmtAllocDash(r.AllocsPerOp),
-			fmtRatioDash(r.Disk.WriteAmplification),
-			fmtBytes(r.Memory.After),
-		}
-
-		if withCoV {
-			row = append(row, fmtCoVDash(r.RepeatCoV))
-		}
-
-		t.AddRow(row)
-	}
-
-	return t
-}
-
-// ── run result rendering ──
-
-// ── soak rendering ──
-
-func renderSoakResult(w io.Writer, format string, result *benchkit.SoakResult) {
-	switch format {
-	case formatJSON:
-		if err := benchkit.WriteSoakJSON(w, result); err != nil {
-			fatalf("write JSON: %v", err)
-		}
-	case formatTable:
-		data := buildSoakTable(result)
-		if err := gotable.Write(w, data, gotable.WithColorMode(output.ColorModeAuto)); err != nil {
-			fatalf("render table: %v", err)
-		}
-
-		printSoakSummary(w, result)
-	case formatCSV:
-		data := buildSoakTable(result)
-
-		if err := delimited.WriteCSV(w, data); err != nil {
-			fatalf("render CSV: %v", err)
-		}
-	case formatTSV:
-		data := buildSoakTable(result)
-
-		if err := delimited.WriteTSV(w, data); err != nil {
-			fatalf("render TSV: %v", err)
-		}
-	case formatMarkdown:
-		data := buildSoakTable(result)
-		writeMarkdownTable(w, data)
-
-		printSoakSummary(w, result)
-	default:
-		benchkit.PrintSoakReport(w, result)
-	}
-}
-
-func buildSoakTable(r *benchkit.SoakResult) *output.Table {
-	headers := []string{"Iter", "Throughput", "Heap", "Write P50", "Write P99"}
-	t := output.NewTable(headers)
-
-	for _, s := range r.Samples {
-		t.AddRow([]string{
-			strconv.Itoa(s.Iteration + 1),
-			fmtFloat(s.Throughput) + "/s",
-			fmtBytes(s.HeapBytes),
-			fmtDur(s.WriteP50),
-			fmtDur(s.WriteP99),
-		})
-	}
-
-	return t
-}
-
-func printSoakSummary(w io.Writer, r *benchkit.SoakResult) {
-	if len(r.Samples) == 0 {
-		return
-	}
-
-	first, last, _ := r.FirstAndLastSample()
-
-	fmt.Fprintf(w, "\nDrift over %s (%d iterations):\n", fmtDur(r.Duration), r.Iterations)
-	fmt.Fprintf(w, "  Throughput: %s/s → %s/s (%+.1f%%)\n",
-		fmtFloat(first.Throughput), fmtFloat(last.Throughput), r.ThroughputDriftPct)
-	fmt.Fprintf(w, "  Write P99:  %s → %s (%+.1f%%)\n",
-		fmtDur(first.WriteP99), fmtDur(last.WriteP99), r.WriteP99DriftPct)
-	fmt.Fprintf(w, "  Heap:       %s → %s (growth: %s, %s/iter)\n",
-		fmtBytes(first.HeapBytes), fmtBytes(last.HeapBytes),
-		fmtBytes(r.HeapGrowthBytes), fmtBytes(uint64(r.HeapLeakRate)))
-}
-
-// ── formatting helpers ──
-
-func sortedResultKeys(m map[string]*benchkit.Result) []string {
-	return slices.Sorted(maps.Keys(m))
+func sortedResultKeys(results map[string]*benchkit.Result) []string {
+	return slices.Sorted(maps.Keys(results))
 }
 
 // fmtDur wraps benchkit.FormatDuration so render.go callers stay short.
 func fmtDur(d time.Duration) string { return benchkit.FormatDuration(d) }
 
 // fmtBytes wraps benchkit.FormatBytes.
-func fmtBytes(b uint64) string { return benchkit.FormatBytes(b) }
+func fmtBytes(bytes uint64) string { return benchkit.FormatBytes(bytes) }
 
 // fmtFloat wraps benchkit.FormatFloat.
 func fmtFloat(f float64) string { return benchkit.FormatFloat(f) }
@@ -470,6 +88,7 @@ func fmtFloat(f float64) string { return benchkit.FormatFloat(f) }
 // fmtInt wraps benchkit.FormatInt.
 func fmtInt(n int) string { return benchkit.FormatInt(n) }
 
+// fmtGCDash renders a GC pause, "-" when none was recorded.
 func fmtGCDash(d time.Duration) string {
 	if d == 0 {
 		return "-"
@@ -478,26 +97,50 @@ func fmtGCDash(d time.Duration) string {
 	return fmtDur(d)
 }
 
-func fmtRatioDash(r float64) string {
-	if r <= 0 {
+// fmtRatioDash renders a ratio such as write amplification, "-" when it was
+// not measured.
+func fmtRatioDash(ratio float64) string {
+	if ratio <= 0 {
 		return "-"
 	}
 
-	return fmt.Sprintf("%.1fx", r)
+	return fmt.Sprintf("%.1fx", ratio)
 }
 
-func fmtAllocDash(a float64) string {
-	if a <= 0 {
+// fmtAllocDash renders allocations per operation, "-" when not measured.
+func fmtAllocDash(allocs float64) string {
+	if allocs <= 0 {
 		return "-"
 	}
 
-	return fmt.Sprintf("%.0f", a)
+	return fmt.Sprintf("%.0f", allocs)
 }
 
-func fmtCoVDash(c float64) string {
-	if c <= 0 {
+// fmtCoVDash renders a coefficient of variation in percent, "-" when there
+// is no dispersion to show.
+func fmtCoVDash(cov float64) string {
+	if cov <= 0 {
 		return "-"
 	}
 
-	return fmt.Sprintf("%.1f%%", c*100)
+	return fmt.Sprintf("%.1f%%", cov*100)
+}
+
+// dashRow builds a FAILED table row: the leading cells, then "-" for every
+// remaining column.
+func dashRow(headers []string, leading ...string) []string {
+	row := append(slices.Clone(leading), make([]string, len(headers)-len(leading))...)
+	for i := len(leading); i < len(row); i++ {
+		row[i] = "-"
+	}
+
+	return row
+}
+
+// withCoV says whether any sweep point carries repeat dispersion, which is
+// exactly when the sweep table grows its CoV column.
+func withCoV(results []benchkit.SweepResult) bool {
+	return slices.ContainsFunc(results, func(sr benchkit.SweepResult) bool {
+		return sr.Result != nil && sr.Result.RepeatCount > 1
+	})
 }

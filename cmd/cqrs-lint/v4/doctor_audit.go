@@ -190,6 +190,12 @@ func failOnStaleSuppressions(
 		}
 	}
 
+	return staleSuppressionError(stale, unknown)
+}
+
+// staleSuppressionError is the ONE fail-on-stale verdict, shared by the text
+// and the JSON doctor paths: nil when nothing is stale or unknown-rule.
+func staleSuppressionError(stale, unknown int) error {
 	if stale == 0 && unknown == 0 {
 		return nil
 	}

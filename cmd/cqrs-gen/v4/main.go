@@ -1,26 +1,27 @@
-// cqrs-gen generates typed handler registration code from Go structs marked with
-// cqrs annotations.
+// cqrs-gen derives the wiring around marked command, query and event structs:
+// typed registration for the composition root, typed event constructors, and
+// optional catalog declarations. One cqrs_gen.go is written per package.
 //
 // Usage:
 //
-//	cqrs-gen -type=command -output=commands_gen.go ./...
-//	cqrs-gen -type=query -output=queries_gen.go ./...
-//	cqrs-gen -type=event -output=events_gen.go ./...
+//	cqrs-gen --type=all --target=system .
+//	cqrs-gen --catalog ./...
+//	cqrs-gen --check .
 //
-// Marker comments in source code (the identifier after the kind becomes the
-// registered command/query/event type):
+// Marker comments in source code (the value is the registered wire name):
 //
-//	//cqrs:command CreateUser
-//	//cqrs:query GetUser
-//	//cqrs:event UserCreated
-//	type CreateUserCmd struct {
+//	//cqrs:command task.create
+//	//cqrs:query task.get
+//	//cqrs:event task.created
+//	type CreateTaskCmd struct {
 //	    *command.BasicCommand
-//	    Name string
+//	    Title string
 //	}
 package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -28,18 +29,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	genTypeCommand = "command"
-	genTypeQuery   = "query"
-	genTypeEvent   = "event"
-)
-
 type AppConfig struct {
 	cmdguard.Config
 
-	Type   string `default:"command"         flag:"type"   help:"handler type to generate: command, query, or event"`
-	Output string `default:"handlers_gen.go" flag:"output" help:"output file path"`
-	Pkg    string `default:""                flag:"pkg"    help:"package name for generated file (defaults to the scanned source package)"`
+	Type     string `default:"all"    flag:"type"     help:"kinds: command, query, event, all, or a comma list"`
+	Target   string `default:"system" flag:"target"   help:"registration shape: system or dispatcher"`
+	Output   string `default:""       flag:"output"   help:"one output file for a single package"`
+	Pkg      string `default:""       flag:"pkg"      help:"package name of the --output file"`
+	Catalog  bool   `default:"false"  flag:"catalog"  help:"declare every marked message for the catalog"`
+	Check    bool   `default:"false"  flag:"check"    help:"fail when a generated file is missing or stale"`
+	Handlers bool   `default:"false"  flag:"handlers" help:"also generate typed event subscription handlers"`
+	List     bool   `default:"false"  flag:"list"     help:"print the discovered markers without writing"`
 }
 
 func main() {
@@ -58,14 +58,14 @@ func main() {
 func buildCLI() (*cmdguard.CLI[AppConfig], error) {
 	cli, err := cmdguard.NewCLI(
 		"cqrs-gen",
-		"Generate typed handler registration code from cqrs annotations",
+		"Generate command, query and event wiring from cqrs markers",
 		AppConfig{},
 		cmdguard.WithCLILong(
-			"cqrs-gen generates typed handler registration code from Go structs marked with cqrs annotations.\n\n"+
+			"cqrs-gen derives command, query and event wiring from Go structs marked with cqrs annotations.\n\n"+
 				"Marker comments in source code:\n"+
-				"  //cqrs:command CreateUser\n"+
-				"  //cqrs:query GetUser\n"+
-				"  //cqrs:event UserCreated",
+				"  //cqrs:command task.create\n"+
+				"  //cqrs:query task.get\n"+
+				"  //cqrs:event task.created",
 		),
 	)
 	//art-dupl:accept cobra CLI bootstrap guard — identical by design across cmd tools
@@ -74,7 +74,7 @@ func buildCLI() (*cmdguard.CLI[AppConfig], error) {
 	}
 
 	rootCmd := cli.RootCommand()
-	rootCmd.Use = "cqrs-gen [-type=command] [-output=handlers_gen.go] [paths...]"
+	rootCmd.Use = "cqrs-gen [paths...]"
 	// ArbitraryArgs: the positional arguments are SCAN PATHS, not
 	// subcommands. Without this, cobra's default validator (active because
 	// help/completion are registered subcommands) rejects every positional
@@ -82,76 +82,46 @@ func buildCLI() (*cmdguard.CLI[AppConfig], error) {
 	// unreachable dead code.
 	rootCmd.Args = cobra.ArbitraryArgs
 	rootCmd.RunE = func(_ *cobra.Command, args []string) error {
-		cfg := cli.Config()
-
 		paths := args
 		if len(paths) == 0 {
 			paths = []string{"."}
 		}
 
-		return run(cfg.Type, cfg.Output, cfg.Pkg, paths)
+		return run(*cli.Config(), paths)
 	}
 
 	return cli, nil
 }
 
-func run(handlerType, outputFile, pkg string, paths []string) error {
-	if handlerType != genTypeCommand && handlerType != genTypeQuery && handlerType != genTypeEvent {
-		return fmt.Errorf("invalid type %q: must be 'command', 'query', or 'event'", handlerType)
+func run(cfg AppConfig, paths []string) error {
+	kinds, err := parseKinds(cfg.Type)
+	if err != nil {
+		return err
 	}
 
-	entries, err := scan(paths, handlerType)
+	target, err := parseTarget(cfg.Target)
+	if err != nil {
+		return err
+	}
+
+	if cfg.Pkg != "" && cfg.Output == "" {
+		return errors.New("--pkg only applies together with --output: " +
+			"per-package output keeps each source package's name")
+	}
+
+	pkgs, err := scan(paths, kinds)
 	if err != nil {
 		return fmt.Errorf("scan: %w", err)
 	}
 
-	if len(entries) == 0 {
-		fmt.Fprintln(os.Stderr, "no cqrs markers found")
-		return nil
+	opts := genOptions{target: target, catalog: cfg.Catalog, handlers: cfg.Handlers}
+
+	switch {
+	case cfg.List:
+		return listMarkers(os.Stdout, pkgs)
+	case cfg.Check:
+		return checkGenerated(pkgs, opts, cfg.Output, cfg.Pkg)
+	default:
+		return writeGenerated(pkgs, opts, cfg.Output, cfg.Pkg)
 	}
-
-	entries = dedupEntries(os.Stderr, entries)
-
-	if pkg == "" {
-		pkg = entries[0].PackageName
-	}
-
-	code, err := generate(pkg, handlerType, entries)
-	if err != nil {
-		return fmt.Errorf("generate: %w", err)
-	}
-
-	if err := os.WriteFile(outputFile, []byte(code), 0o644); err != nil {
-		return fmt.Errorf("write: %w", err)
-	}
-
-	fmt.Printf("generated %d handlers → %s\n", len(entries), outputFile)
-	return nil
 }
-
-const (
-	commandImports = `import (
-	"context"
-
-	"github.com/larsartmann/go-cqrs-lite/command/v4"
-)
-
-`
-
-	queryImports = `import (
-	"context"
-
-	"github.com/larsartmann/go-cqrs-lite/query/v4"
-)
-
-`
-
-	eventImports = `import (
-	"context"
-
-	"github.com/larsartmann/go-codec"
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
-)
-
-`
-)

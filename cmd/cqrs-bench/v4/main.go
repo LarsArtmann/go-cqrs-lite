@@ -3,337 +3,131 @@
 //
 // Usage:
 //
-//	cqrs-bench run --backend sqlite --dsn ":memory:" --profile dev
+//	cqrs-bench run --backend sqlite --profile dev
 //	cqrs-bench compare --profile small --format markdown
+//	cqrs-bench sweep --param workers --values 1,2,4,8 --backend memory
 //
-// The tool never hardcodes a backend — each backend is a Factory function
-// from its stack preset. Adding a new backend means adding one case to the
-// factory switch.
+// Every backend is declared once, in the registry in backend.go; help text,
+// validation, and alias resolution all derive from it. Handlers return
+// errors instead of exiting, so a failed or interrupted command still
+// removes its temporary stores and flushes its profiles.
 package main
 
 import (
 	"context"
 	"fmt"
-	"io"
-	"os"
 	"strings"
-	"time"
 
 	cmdguard "github.com/larsartmann/cmdguard/v5/pkg/cmdguard/v5"
-
-	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 )
 
-type AppConfig struct {
-	cmdguard.Config
-}
-
-const longDesc = "cqrs-bench — go-cqrs-lite benchmarking tool\n\nBackends:\n  memory     In-memory store (no persistence)\n  sqlite     SQLite database (pure-Go modernc driver, optimized pragmas)\n  sqlite-cgo SQLite database (CGo mattn driver — 3-5x faster, requires gcc)\n  pebble     PebbleDB LSM-tree store\n  bbolt      B+tree store (pure Go, single-writer, etcd-backed)\n  postgres   PostgreSQL database (requires --dsn)\n  mysql      MySQL/MariaDB database (requires --dsn)\n  turso      Turso embedded database (libSQL/SQLite fork)\n\nProfiles:\n  dev         100 streams x 5 events     (500 events, 1 goroutine)\n  small       1K streams x 10 events     (10K events, 4 goroutines)\n  medium      10K streams x 50 events    (500K events, 16 goroutines)\n  large       100K streams x 100 events  (10M events, 32 goroutines)\n  stress      10K streams x 500 events   (5M events, 64 goroutines)\n  write-heavy 10K streams x 100 events   (1M events, 32 goroutines, 90% writes)\n  read-heavy  10K streams x 100 events   (1M events, 32 goroutines, 80% reads)\n  analytical  10K streams x 10 events    (100K events, 16 goroutines, 90% reads, 5x journal scans)\n\nCodecs:\n  json    JSON encoding (default)\n  cbor    CBOR encoding (compact binary)\n\nFormats:\n  auto       Auto-detect: styled table in terminal, plain text when piped (default)\n  table      Styled terminal table with borders and color (via go-output)\n  text       Human-readable plain text report\n  json       Machine-readable JSON\n  csv        CSV export (spreadsheet-friendly)\n  tsv        TSV export (tab-separated)\n  markdown   Markdown table (run, compare, sweep)\n  benchstat  benchstat-compatible lines (pipe to benchstat; run only)\n  manifest   Config + environment + result as JSON (run only)\n\nExamples:\n  cqrs-bench run --backend sqlite --dsn \":memory:\" --profile dev\n  cqrs-bench run --backend memory --profile dev --format table\n  cqrs-bench run --backend pebble --dir /tmp/bench --profile small --codec cbor\n  cqrs-bench run --backend memory --profile small --repeat 5\n  cqrs-bench run --backend memory --profile dev --soak 5m\n  cqrs-bench run --backend sqlite --dsn \":memory:\" --profile dev --skip-snapshot\n  cqrs-bench run --backend memory --profile small --format csv --output results.csv\n  cqrs-bench compare --profile small --format table\n  cqrs-bench compare --profile small --format markdown\n  cqrs-bench compare --profile small --format csv\n  cqrs-bench sweep --param workers --values 1,2,4,8 --backend memory --profile dev\n  cqrs-bench sweep --param batchSize --values 1,5,10 --backend sqlite --profile small"
-
 func main() {
-	cli, err := cmdguard.NewCLI[AppConfig](
-		"cqrs-bench",
-		"go-cqrs-lite benchmarking tool",
-		AppConfig{},
-		cmdguard.WithCLIVersion(version()),
-		cmdguard.WithCLILong(longDesc),
-	)
+	cli, err := newCLI()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating CLI: %v\n", err)
-		os.Exit(1)
+		fatalf("%v", err)
 	}
-
-	runCmd, err := cmdguard.NewCommand[AppConfig, *RunFlags]("run", &RunFlags{},
-		runHandler,
-		cmdguard.WithShort("Run a benchmark against a single backend"),
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating run command: %v\n", err)
-		os.Exit(1)
-	}
-
-	compareCmd, err := cmdguard.NewCommand[AppConfig, *CompareFlags]("compare", &CompareFlags{},
-		compareHandler,
-		cmdguard.WithShort("Compare benchmarks across multiple backends"),
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating compare command: %v\n", err)
-		os.Exit(1)
-	}
-
-	sweepCmd, err := cmdguard.NewCommand[AppConfig, *SweepFlags]("sweep", &SweepFlags{},
-		sweepHandler,
-		cmdguard.WithShort("Sweep a parameter across benchmark runs"),
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating sweep command: %v\n", err)
-		os.Exit(1)
-	}
-
-	if err := cmdguard.AddCommand(cli, runCmd); err != nil {
-		fmt.Fprintf(os.Stderr, "Error adding run command: %v\n", err)
-		os.Exit(1)
-	}
-
-	if err := cmdguard.AddCommand(cli, compareCmd); err != nil {
-		fmt.Fprintf(os.Stderr, "Error adding compare command: %v\n", err)
-		os.Exit(1)
-	}
-
-	if err := cmdguard.AddCommand(cli, sweepCmd); err != nil {
-		fmt.Fprintf(os.Stderr, "Error adding sweep command: %v\n", err)
-		os.Exit(1)
-	}
-
-	listPhasesCmd, err := cmdguard.NewCommand[AppConfig, *ListPhasesFlags](
-		"list-phases", &ListPhasesFlags{},
-		listPhasesHandler,
-		cmdguard.WithShort("List all benchmark phases with descriptions"),
-	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating list-phases command: %v\n", err)
-		os.Exit(1)
-	}
-
-	if err := cmdguard.AddCommand(cli, listPhasesCmd); err != nil {
-		fmt.Fprintf(os.Stderr, "Error adding list-phases command: %v\n", err)
-		os.Exit(1)
-	}
-
-	registerLayoutCommand(cli)
 
 	cli.ExecuteAndExit(context.Background())
 }
 
-// ── run subcommand ──
-
-func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
-	if flags.Soak.Duration() > 0 {
-		validateFormat("run --soak", flags.Format, soakFormats)
-	} else {
-		validateFormat("run", flags.Format, runFormats)
-	}
-
-	defer startProfiling(flags.CPUProfile, flags.MemProfile)()
-
-	profile, codec := loadProfileAndCodec(flags.Profile, flags.Codec)
-
-	factory, diskPath, cleanup := makeFactory(
-		ctx,
-		flags.Backend,
-		flags.DSN,
-		flags.Dir,
-		flags.Durability,
+// newCLI builds the command tree. The Builder attaches every command in one
+// pass, so a construction fault is reported once and nothing half-built
+// remains. The "run" spelling below is load-bearing: scripts/benchmark-
+// regression.sh greps main.go for the run subcommand to guard its noise
+// gate's target.
+func newCLI() (*cmdguard.CLI[appConfig], error) {
+	cli, err := cmdguard.NewCLI[appConfig](
+		"cqrs-bench",
+		"go-cqrs-lite benchmarking tool",
+		appConfig{},
+		cmdguard.WithCLIVersion(version()),
+		cmdguard.WithCLILong(longDescription()),
 	)
-	if cleanup != nil {
-		defer cleanup()
-	}
-
-	soak := flags.Soak.Duration()
-
-	config := benchkit.Config{
-		Profile:                 profile,
-		PayloadSize:             flags.PayloadSize,
-		Codec:                   codec,
-		Warmup:                  flags.Warmup,
-		Repeat:                  flags.Repeat,
-		Recovery:                flags.Recovery,
-		ReplayOnly:              flags.Replay,
-		SkipBatchWrite:          flags.SkipBatchWrite,
-		SkipRawSink:             flags.SkipRawSink,
-		SkipJourney:             flags.SkipJourney,
-		SkipQuery:               flags.SkipQuery,
-		SkipSnapshot:            flags.SkipSnapshot,
-		SkipMixed:               flags.SkipMixed,
-		Strict:                  flags.Strict,
-		Backend:                 flags.Backend,
-		DiskPath:                diskPath,
-		InterpolatedPercentiles: flags.Interpolated,
-		ReservoirSize:           flags.ReservoirSize,
-	}
-	applyProgress(&config, flags.Progress.Duration(), flags.Quiet)
-
-	if sizes, err := parsePayloadSizes(flags.PayloadSizes); err != nil {
-		fatalf("invalid --payload-sizes: %v", err)
-	} else if len(sizes) > 0 {
-		config.PayloadSizes = sizes
-	}
-
-	runCtx, cancel := context.WithTimeout(ctx, max(30*time.Minute, soak*2))
-	defer cancel()
-
-	if soak > 0 {
-		var soakProgressWriter io.Writer = os.Stderr
-		if flags.Quiet {
-			soakProgressWriter = nil
-		}
-
-		soakResult, err := benchkit.RunSoak(runCtx, benchkit.SoakConfig{
-			Duration:       soak,
-			ReportInterval: 10 * time.Second,
-			ProgressWriter: soakProgressWriter,
-			Config:         config,
-		}, factory)
-		if err != nil {
-			fatalf("soak test failed: %v", err)
-		}
-
-		writeSoakResult(flags.Format, flags.Output, soakResult)
-
-		return nil
-	}
-
-	var result *benchkit.Result
-
-	var repeated *benchkit.RepeatedResult
-
-	var err error
-
-	if flags.Repeat > 1 {
-		repeated, err = benchkit.RunRepeated(runCtx, config, factory)
-		if repeated != nil {
-			result = repeated.Median
-		}
-	} else {
-		result, err = benchkit.Run(runCtx, config, factory)
-	}
-
 	if err != nil {
-		fatalf("benchmark failed: %v", err)
+		return nil, fmt.Errorf("create CLI: %w", err)
 	}
 
-	writeResult(flags.Format, flags.Output, config, result, repeated, flags.IncludeRuns)
+	builder := cmdguard.NewBuilder(cli)
 
-	// --strict on a repeated run is also a noise gate: a headline metric whose
-	// cross-run CoV reached the threshold means the medians are not
-	// decision-grade, and a CI consumer must fail instead of trusting them.
-	// Runs after writeResult so the report/artifact still lands for triage.
-	if msg := strictNoiseGate(flags.Strict, repeated); msg != "" {
-		fatalf("%s", msg)
+	cmdguard.Add(builder, "run", runFlags{}, runHandler,
+		cmdguard.WithShort("Run a benchmark against a single backend"),
+		cmdguard.WithNoArgs())
+
+	cmdguard.Add(builder, "compare", compareFlags{}, compareHandler,
+		cmdguard.WithShort("Compare benchmarks across multiple backends"),
+		cmdguard.WithNoArgs())
+
+	cmdguard.Add(builder, "sweep", sweepFlags{}, sweepHandler,
+		cmdguard.WithShort("Sweep a parameter across benchmark runs"),
+		cmdguard.WithNoArgs())
+
+	cmdguard.Add(builder, "list-phases", cmdguard.NoFlags{}, listPhasesHandler,
+		cmdguard.WithShort("List all benchmark phases with descriptions"),
+		cmdguard.WithNoArgs())
+
+	cmdguard.Add(builder, "layout", layoutFlags{}, layoutHandler,
+		cmdguard.WithShort("Explore layout cost model, a pre-deployment what-if analysis"),
+		cmdguard.WithNoArgs())
+
+	if err := builder.Build(); err != nil {
+		return nil, fmt.Errorf("register commands: %w", err)
 	}
 
-	return nil
+	return cli, nil
 }
 
-// ── compare subcommand ──
-
-func compareHandler(ctx context.Context, _ *AppConfig, flags *CompareFlags) error {
-	validateFormat("compare", flags.Format, compareFormats)
-
-	profile, codec := loadProfileAndCodec(flags.Profile, flags.Codec)
-
-	names := strings.Split(flags.Backends, ",")
-	factories := make(map[string]benchkit.Factory, len(names))
-	diskPaths := make(map[string]string, len(names))
-
-	for _, name := range names {
-		name = strings.TrimSpace(name)
-
-		factory, diskPath, cleanup := makeFactory(ctx, name, "", "", flags.Durability)
-		factories[name] = factory
-		diskPaths[name] = diskPath
-
-		if cleanup != nil {
-			defer cleanup()
-		}
+// longDescription is the root help text. The backend block comes from the
+// registry and the profile numbers from benchkit, so neither can drift from
+// the code.
+func longDescription() string {
+	sections := []string{
+		"cqrs-bench: go-cqrs-lite benchmarking tool",
+		backendHelp(),
+		profilesHelp(),
+		"Codecs:\n  json    JSON encoding (default)\n  cbor    CBOR encoding (compact binary)",
+		"Formats:\n" + strings.Join([]string{
+			"  auto       A table for a terminal, text anywhere else (default)",
+			"  table      Styled terminal table (via go-output)",
+			"  text       Human-readable plain text report",
+			"  json       Machine-readable JSON",
+			"  csv        CSV export (spreadsheet-friendly)",
+			"  tsv        TSV export (tab-separated)",
+			"  markdown   Markdown table (run, compare, sweep)",
+			"  benchstat  benchstat-compatible lines (run only)",
+			"  manifest   Config + environment + result as JSON (run only)",
+		}, "\n"),
+		"Stores:\n" + strings.Join([]string{
+			"  Every run, repeat, sweep point, and soak iteration starts from an empty",
+			"  store; warmup writes to a throwaway sibling. Without --dir the store",
+			"  lives in a temporary directory that is removed afterwards. With --dir",
+			"  it stays at <dir>/.cqrs-bench/<backend>/store for inspection and --replay.",
+		}, "\n"),
+		"Examples:\n" + strings.Join([]string{
+			"  cqrs-bench run --backend sqlite --profile dev",
+			`  cqrs-bench run --backend sqlite --dsn ":memory:" --profile dev`,
+			"  cqrs-bench run --backend pebble --dir /tmp/bench --profile small --codec cbor",
+			"  cqrs-bench run --backend memory --profile small --repeat 5",
+			"  cqrs-bench run --backend memory --profile dev --soak 5m",
+			"  cqrs-bench run --backend memory --profile small --format csv --output results.csv",
+			"  cqrs-bench compare --profile small --format markdown",
+			"  cqrs-bench compare --profile small --backends sqlite,pebble --dir /tmp/bench",
+			"  cqrs-bench sweep --param workers --values 1,2,4,8 --backend memory --profile dev",
+		}, "\n"),
 	}
 
-	config := benchkit.Config{
-		Profile:                 profile,
-		PayloadSize:             flags.PayloadSize,
-		Codec:                   codec,
-		Repeat:                  flags.Repeat,
-		SkipBatchWrite:          flags.SkipBatchWrite,
-		SkipRawSink:             flags.SkipRawSink,
-		SkipJourney:             flags.SkipJourney,
-		SkipQuery:               flags.SkipQuery,
-		SkipSnapshot:            flags.SkipSnapshot,
-		InterpolatedPercentiles: flags.Interpolated,
-		ReservoirSize:           flags.ReservoirSize,
-	}
-	applyProgress(&config, flags.Progress.Duration(), flags.Quiet)
-
-	if sizes, err := parsePayloadSizes(flags.PayloadSizes); err != nil {
-		fatalf("invalid --payload-sizes: %v", err)
-	} else if len(sizes) > 0 {
-		config.PayloadSizes = sizes
-	}
-
-	runCtx, cancel := context.WithTimeout(ctx, 30*time.Minute)
-	defer cancel()
-
-	results := compareWithDiskPaths(runCtx, config, factories, diskPaths)
-
-	writeComparison(flags.Format, flags.Output, results)
-
-	return nil
+	return strings.Join(sections, "\n\n")
 }
 
-// ── sweep subcommand ──
+// profilesHelp is the "Profiles:" block of the long description.
+func profilesHelp() string {
+	lines := []string{"Profiles:"}
 
-func sweepHandler(ctx context.Context, _ *AppConfig, flags *SweepFlags) error {
-	validateFormat("sweep", flags.Format, compareFormats)
-
-	profile, codec := loadProfileAndCodec(flags.Profile, flags.Codec)
-
-	values, err := parsePayloadSizes(flags.Values)
-	if err != nil {
-		fatalf("invalid --values: %v", err)
+	for _, name := range profileNames() {
+		profile, _ := profileByName(name)
+		lines = append(lines, fmt.Sprintf("  %-13s %s streams x %s events = %s events, %d goroutines",
+			profile.Name, fmtInt(profile.Streams), fmtInt(profile.EventsPerStream),
+			fmtInt(profile.TotalEvents()), profile.Concurrency))
 	}
 
-	if len(values) < 2 {
-		fatalf("provide at least 2 values to sweep, got %d", len(values))
-	}
-
-	factory, diskPath, cleanup := makeFactory(
-		ctx,
-		flags.Backend,
-		flags.DSN,
-		flags.Dir,
-		flags.Durability,
-	)
-	if cleanup != nil {
-		defer cleanup()
-	}
-
-	config := benchkit.Config{
-		Profile:                 profile,
-		PayloadSize:             flags.PayloadSize,
-		Codec:                   codec,
-		Repeat:                  flags.Repeat,
-		SkipBatchWrite:          flags.SkipBatchWrite,
-		SkipRawSink:             flags.SkipRawSink,
-		SkipJourney:             flags.SkipJourney,
-		SkipQuery:               flags.SkipQuery,
-		SkipSnapshot:            flags.SkipSnapshot,
-		Backend:                 flags.Backend,
-		DiskPath:                diskPath,
-		InterpolatedPercentiles: flags.Interpolated,
-		ReservoirSize:           flags.ReservoirSize,
-	}
-
-	runCtx, cancel := context.WithTimeout(ctx, 30*time.Minute)
-	defer cancel()
-
-	var results []benchkit.SweepResult
-
-	switch flags.Param {
-	case "workers":
-		results = benchkit.WorkerSweep(runCtx, config, factory, values)
-	case "batchSize", "batch-size", "batch":
-		results = benchkit.BatchSizeSweep(runCtx, config, factory, values)
-	case "streamLength", "stream-length", "stream":
-		results = benchkit.StreamLengthSweep(runCtx, config, factory, values)
-	case "gomaxprocs", "gomax":
-		results = benchkit.GOMAXPROCSSweep(runCtx, config, factory, values)
-	default:
-		fatalf(
-			"unknown parameter: %s (use workers, batchSize, streamLength, gomaxprocs)",
-			flags.Param,
-		)
-	}
-
-	writeSweep(flags.Format, flags.Output, results)
-
-	return nil
+	return strings.Join(lines, "\n")
 }

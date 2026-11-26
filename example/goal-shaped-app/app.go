@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -120,47 +119,26 @@ func registerCommands(sys *system.System) {
 		Initial: TaskState{},
 		Apply:   applyTask,
 	}, system.WithSnapshotStrategy(strategy)))
-	must(system.RegisterCommand[CreateTaskCmd, TaskState](sys, cmdCreateTask, createOp))
-	must(system.RegisterCommand[CompleteTaskCmd, TaskState](sys, cmdCompleteTask, completeOp))
-	must(system.RegisterCommand[DeleteTaskCmd, TaskState](sys, cmdDeleteTask, deleteOp))
+	must(RegisterCreateTaskCmd(sys, streamType, decideCreate))
+	must(RegisterCompleteTaskCmd(sys, streamType, decideComplete))
+	must(RegisterDeleteTaskCmd(sys, streamType, decideDelete))
 }
 
-func createOp(ctx context.Context, cmd CreateTaskCmd) system.Op[TaskState] {
-	return system.Execute(ctx, cmd.StreamID(), streamType,
-		func(s TaskState, v event.Version) ([]event.Event, error) {
-			return decideCreate(cmd, s, v)
-		})
-}
-
-func completeOp(ctx context.Context, cmd CompleteTaskCmd) system.Op[TaskState] {
-	return system.Execute(ctx, cmd.StreamID(), streamType,
-		func(s TaskState, v event.Version) ([]event.Event, error) {
-			return decideComplete(cmd, s, v)
-		})
-}
-
-func deleteOp(ctx context.Context, cmd DeleteTaskCmd) system.Op[TaskState] {
-	return system.Execute(ctx, cmd.StreamID(), streamType,
-		func(s TaskState, v event.Version) ([]event.Event, error) {
-			return decideDelete(cmd, s, v)
-		})
-}
-
-func decideCreate(cmd CreateTaskCmd, s TaskState, v event.Version) ([]event.Event, error) {
+func decideCreate(_ context.Context, cmd CreateTaskCmd, s TaskState, v event.Version) ([]event.Event, error) {
 	if s.Exists {
 		return nil, errTaskExists
 	}
 
-	evt, err := event.New(evtTaskCreated, cmd.StreamID(), streamType, v.Increment(),
+	evt, err := NewTaskCreatedEvent(cmd.StreamID(), streamType, v.Increment(),
 		TaskCreated{ID: cmd.StreamID().Get(), Title: cmd.Title, Priority: cmd.Priority})
 	if err != nil {
-		return nil, fmt.Errorf("task.created: %w", err)
+		return nil, err
 	}
 
 	return []event.Event{evt}, nil
 }
 
-func decideComplete(cmd CompleteTaskCmd, s TaskState, v event.Version) ([]event.Event, error) {
+func decideComplete(_ context.Context, cmd CompleteTaskCmd, s TaskState, v event.Version) ([]event.Event, error) {
 	if !s.Exists {
 		return nil, errTaskGone
 	}
@@ -169,27 +147,27 @@ func decideComplete(cmd CompleteTaskCmd, s TaskState, v event.Version) ([]event.
 		return nil, errTaskDone
 	}
 
-	evt, err := event.New(evtTaskUpdated, cmd.StreamID(), streamType, v.Increment(),
+	evt, err := NewTaskUpdatedEvent(cmd.StreamID(), streamType, v.Increment(),
 		TaskUpdated{
 			ID: cmd.StreamID().Get(), Title: s.Title,
 			Status: StatusDone, Priority: s.Priority,
 		})
 	if err != nil {
-		return nil, fmt.Errorf("task.updated: %w", err)
+		return nil, err
 	}
 
 	return []event.Event{evt}, nil
 }
 
-func decideDelete(cmd DeleteTaskCmd, s TaskState, v event.Version) ([]event.Event, error) {
+func decideDelete(_ context.Context, cmd DeleteTaskCmd, s TaskState, v event.Version) ([]event.Event, error) {
 	if !s.Exists {
 		return nil, errTaskGone
 	}
 
-	evt, err := event.New(evtTaskDeleted, cmd.StreamID(), streamType, v.Increment(),
+	evt, err := NewTaskDeletedEvent(cmd.StreamID(), streamType, v.Increment(),
 		TaskDeleted{ID: cmd.StreamID().Get()})
 	if err != nil {
-		return nil, fmt.Errorf("task.deleted: %w", err)
+		return nil, err
 	}
 
 	return []event.Event{evt}, nil
@@ -199,7 +177,7 @@ func registerQueries(sys *system.System) {
 	byID := metaengine.NewReader[TaskView](sys.MetaEngine(), tasksCollection)
 	open := metaengine.NewReader[TaskView](sys.MetaEngine(), openCollection)
 
-	getErr := system.RegisterQuery[GetTask, TaskView](sys, string(qryGetTask),
+	getErr := RegisterGetTask(sys,
 		func(ctx context.Context, q GetTask) (TaskView, error) {
 			view, found, err := byID.Get(ctx, q.ID)
 			if err != nil {
@@ -214,7 +192,7 @@ func registerQueries(sys *system.System) {
 		})
 	must(getErr)
 
-	openErr := system.RegisterQuery[OpenTasks, []TaskView](sys, string(qryOpenTasks),
+	openErr := RegisterOpenTasks(sys,
 		func(ctx context.Context, _ OpenTasks) ([]TaskView, error) {
 			return open.Scan(ctx, metaengine.WithFilter("status", metaengine.FilterEq, StatusOpen))
 		})

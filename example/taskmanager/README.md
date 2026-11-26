@@ -165,15 +165,11 @@ Each backend the deployment might use needs one blank import so its driver
 self-registers (see `setup.go`). The domain, events, decider, projection, and
 handler code doesn't change.
 
-## Codegen loop (cqrs-gen dogfood)
+## Code generation
 
-`CreateTaskCmd` carries a `//cqrs:command task.create` marker; the generated
-`handlers_gen.go` is committed beside it. The loop this pins:
-
-```bash
-cqrs-gen --type=command --output=handlers_gen.go <this directory>
-```
-
-Mark a type, run the generator over the package, commit both — the generated
-`RegisterCreateTaskCmdHandler` is the compile-verified proof that the
-marker→boilerplate loop works end to end (see `cmd/cqrs-gen/v4/README.md`).
+This example hand-writes its command registration because every handler maps
+its command onto a decide factory (`Create(CreateTask{...})`), which generated
+code cannot shorten. The live `cqrs-gen` loop — marked structs, a committed
+`cqrs_gen.go`, generated catalog declarations — lives in
+[`../goal-shaped-app`](../goal-shaped-app/README.md); the tool itself is
+documented in [`cmd/cqrs-gen/v4/README.md`](../../cmd/cqrs-gen/v4/README.md).

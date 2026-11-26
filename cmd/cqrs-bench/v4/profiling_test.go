@@ -2,18 +2,30 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 )
 
-// TestStartProfiling_TeardownOrderFlushesBeforeClose (benchkit polish-tail
-// (c), 2026-09-29) pins the LIFO teardown contract: the stop func must run
-// pprof.StopCPUProfile BEFORE closing the cpu-profile file (flush-then-close)
-// and write the heap profile to disk. A reordered teardown closes the file
-// first and leaves an EMPTY cpu profile on disk — exactly the regression
-// this guard catches, since a valid gzip pprof stream is impossible unless
-// the profiler flushed before the close.
+// profilingOrFail starts profiling for a test and fails when it cannot.
+func profilingOrFail(t *testing.T, cpuProfile, memProfile string) func() {
+	t.Helper()
+
+	stop, err := startProfiling(cpuProfile, memProfile)
+	if err != nil {
+		t.Fatalf("startProfiling(%q, %q): %v", cpuProfile, memProfile, err)
+	}
+
+	return stop
+}
+
+// TestStartProfiling_TeardownOrderFlushesBeforeClose pins the LIFO teardown
+// contract: the stop func must run pprof.StopCPUProfile BEFORE closing the
+// cpu-profile file (flush-then-close) and write the heap profile to disk. A
+// reordered teardown closes the file first and leaves an EMPTY cpu profile on
+// disk, exactly the regression this guard catches, since a valid gzip pprof
+// stream is impossible unless the profiler flushed before the close.
 func TestStartProfiling_TeardownOrderFlushesBeforeClose(t *testing.T) {
 	t.Parallel()
 
@@ -21,34 +33,32 @@ func TestStartProfiling_TeardownOrderFlushesBeforeClose(t *testing.T) {
 	cpuPath := filepath.Join(dir, "cpu.pprof")
 	memPath := filepath.Join(dir, "mem.pprof")
 
-	stop := startProfiling(cpuPath, memPath)
+	stop := profilingOrFail(t, cpuPath, memPath)
 
 	sink := 0
+
 	for i := range 1000 {
 		sink += i
 	}
 
 	stop()
 
-	cpuBytes, err := os.ReadFile(cpuPath)
+	assertGzipFile(t, cpuPath, "cpu profile")
+	assertGzipFile(t, memPath, "mem profile")
+}
+
+// assertGzipFile fails when path is missing, empty, or not a gzip stream.
+func assertGzipFile(t *testing.T, path, what string) {
+	t.Helper()
+
+	content, err := os.ReadFile(path)
 	if err != nil {
-		t.Fatalf("read cpu profile: %v", err)
+		t.Fatalf("read %s: %v", what, err)
 	}
 
-	if !bytes.HasPrefix(cpuBytes, []byte{0x1f, 0x8b}) {
-		t.Fatalf(
-			"cpu profile is not a gzipped pprof stream (teardown closed before flush?): %d bytes",
-			len(cpuBytes),
-		)
-	}
-
-	memBytes, err := os.ReadFile(memPath)
-	if err != nil {
-		t.Fatalf("read mem profile: %v", err)
-	}
-
-	if !bytes.HasPrefix(memBytes, []byte{0x1f, 0x8b}) {
-		t.Fatalf("mem profile is not a gzipped pprof stream: %d bytes", len(memBytes))
+	if !bytes.HasPrefix(content, []byte{0x1f, 0x8b}) {
+		t.Fatalf("%s at %s is not a gzipped pprof stream (teardown closed before flush?): %d bytes",
+			what, path, len(content))
 	}
 }
 
@@ -57,5 +67,22 @@ func TestStartProfiling_TeardownOrderFlushesBeforeClose(t *testing.T) {
 func TestStartProfiling_EmptyFlagsIsNoOp(t *testing.T) {
 	t.Parallel()
 
-	startProfiling("", "")()
+	profilingOrFail(t, "", "")()
+}
+
+// TestStartProfiling_UnwritablePathIsAnError: a profile that cannot start is
+// reported, not exited from, so the caller's cleanup still runs.
+func TestStartProfiling_UnwritablePathIsAnError(t *testing.T) {
+	t.Parallel()
+
+	missing := filepath.Join(t.TempDir(), "missing", "cpu.pprof")
+
+	stop, err := startProfiling(missing, "")
+	if !errors.Is(err, errFlagValue) {
+		t.Fatalf("startProfiling with an unwritable path: error = %v, want errFlagValue", err)
+	}
+
+	if stop != nil {
+		t.Error("a profiling that did not start must not return a stop func")
+	}
 }
