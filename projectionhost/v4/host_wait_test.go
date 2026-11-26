@@ -18,6 +18,7 @@ import (
 // caught up: the worker keeps polling it until its context ends.
 type stalledJournal struct {
 	*memoryJournal
+
 	reads atomic.Int64
 }
 
@@ -29,7 +30,7 @@ func (j *stalledJournal) ReadFrom(
 	j.reads.Add(1)
 	<-ctx.Done()
 
-	return nil, ctx.Err() //nolint:wrapcheck // test double forwarding the worker's own cancellation
+	return nil, ctx.Err()
 }
 
 // TestRegisterAndWait_BlocksUntilContextCancelled pins the documented

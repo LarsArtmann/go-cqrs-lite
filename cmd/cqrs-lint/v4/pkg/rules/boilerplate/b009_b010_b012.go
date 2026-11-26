@@ -23,7 +23,7 @@ func NewB009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var findings []finding.Finding
 
 			for _, gf := range ctx.GoFiles {
-				if gf.IsTest {
+				if gf.IsTest || isGenerated(gf.AST) {
 					continue
 				}
 
@@ -76,7 +76,8 @@ func NewB009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					f, err := findingTemplate.Builder(
 						"B009",
 						fmt.Sprintf(
-							"Function %s wraps event creation + publish — consider code generation with cqrs-gen",
+							"Function %s wraps event creation + publish: mark the payload with //cqrs:event and "+
+								"let cqrs-gen derive the typed constructor",
 							fn.Name.Name,
 						),
 						finding.SeverityInfo,
@@ -84,7 +85,8 @@ func NewB009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					).
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceHigh).
-						WithSuggestion("Use cqrs-gen to generate typed emit functions from struct tags").
+						WithSuggestion("Run cqrs-gen, then call the generated New<Struct>Event instead of event.New: " +
+							"it binds the wire name to the payload type").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {
@@ -111,7 +113,7 @@ func NewB010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var findings []finding.Finding
 
 			for _, gf := range ctx.GoFiles {
-				if gf.IsTest {
+				if gf.IsTest || isGenerated(gf.AST) {
 					continue
 				}
 
@@ -156,7 +158,8 @@ func NewB010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					f, err := findingTemplate.Builder(
 						"B010",
 						fmt.Sprintf(
-							"%d catalog.Event calls in %s — consider cqrs-gen to auto-generate from struct tags",
+							"%d catalog.Event calls in %s: mark the payloads with //cqrs:event and run "+
+								"cqrs-gen --catalog",
 							catalogCallCount,
 							fn.Name.Name,
 						),
@@ -165,7 +168,8 @@ func NewB010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					).
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceHigh).
-						WithSuggestion("Run cqrs-gen to auto-generate catalog registrations from Go struct types").
+						WithSuggestion("cqrs-gen --catalog writes CatalogMessages(), the declarations of every " +
+							"marked message in the package").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {

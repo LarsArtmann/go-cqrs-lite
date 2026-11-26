@@ -107,8 +107,12 @@ func requiredImports(p pkg, opts genOptions) []string {
 		case kindCommand:
 			paths = append(paths, pathContext)
 
-			if m.constExpr != "" || opts.target == targetDispatcher {
+			if m.constExpr != "" || opts.target == targetDispatcher || m.constructor {
 				paths = append(paths, pathCommand)
+			}
+
+			if m.constructor {
+				paths = append(paths, pathFmt, pathID)
 			}
 
 			if opts.target == targetSystem {
@@ -117,8 +121,12 @@ func requiredImports(p pkg, opts genOptions) []string {
 		case kindQuery:
 			paths = append(paths, pathContext)
 
-			if m.constExpr != "" || opts.target == targetDispatcher {
+			if m.constExpr != "" || opts.target == targetDispatcher || m.constructor {
 				paths = append(paths, pathQuery)
+			}
+
+			if m.constructor {
+				paths = append(paths, pathFmt)
 			}
 
 			if opts.target == targetSystem {
@@ -164,13 +172,19 @@ func writeConstants(b *strings.Builder, p pkg) {
 
 func writeMarker(b *strings.Builder, m *marker, opts genOptions) {
 	switch m.kind {
-	case kindCommand:
-		if opts.target == targetSystem {
-			writeSystemCommand(b, m)
-		} else {
-			writeDispatcherCommand(b, m)
+	case kindCommand, kindQuery:
+		writeConstructor(b, m)
+
+		if m.kind == kindCommand {
+			if opts.target == targetSystem {
+				writeSystemCommand(b, m)
+			} else {
+				writeDispatcherCommand(b, m)
+			}
+
+			return
 		}
-	case kindQuery:
+
 		if opts.target == targetSystem {
 			writeSystemQuery(b, m)
 		} else {
@@ -243,13 +257,13 @@ func writeDispatcherQuery(b *strings.Builder, m *marker) {
 }
 
 func writeEventConstructor(b *strings.Builder, m *marker) {
-	fmt.Fprintf(b, "// %s builds the %s event for a stream.\n", eventName(m), m.wire)
+	fmt.Fprintf(b, "// %s builds the %s event for a stream; options reach event.New.\n", eventName(m), m.wire)
 	fmt.Fprintf(b, "func %s(\n", eventName(m))
 	b.WriteString("\tstreamID id.StreamID,\n")
 	b.WriteString("\tstreamType id.StreamType,\n")
 	b.WriteString("\tversion event.Version,\n")
-	fmt.Fprintf(b, "\tpayload %s,\n) (event.Event, error) {\n", m.structName)
-	fmt.Fprintf(b, "\tevt, err := event.New(%s, streamID, streamType, version, payload)\n", m.constName)
+	fmt.Fprintf(b, "\tpayload %s,\n\topts ...event.Option,\n) (event.Event, error) {\n", m.structName)
+	fmt.Fprintf(b, "\tevt, err := event.New(%s, streamID, streamType, version, payload, opts...)\n", m.constName)
 	fmt.Fprintf(b, "\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"%%s: %%w\", %s, err)\n\t}\n\n", m.constName)
 	b.WriteString("\treturn evt, nil\n}\n\n")
 }

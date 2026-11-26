@@ -121,6 +121,7 @@ func (e *duckdbEngine) ExplainAggregateQuery(
 	// fn values are interpolated verbatim into the emitted SQL; explain only
 	// emits whitelisted fns. Fn is enforced only for the scalar form —
 	// spec-based and Distinct explains legitimately leave it empty.
+	// art-dupl:accept explain validation is the per-engine twin of the other SQL engine (separate go.mod, dialect-specific SQL ahead)
 	if len(opts.Specs) == 0 && opts.Distinct == "" && !metaengine.IsValidAggregateFn(opts.Fn) {
 		return "/* rejected: invalid aggregate fn */", nil
 	}

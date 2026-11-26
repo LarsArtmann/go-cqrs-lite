@@ -35,12 +35,7 @@ func TestInfer_CompositeKeyUpdateReorderedFields(t *testing.T) {
 		metaengine.Infer(reorderCreated{}, reorderUpdated{}),
 	)
 
-	store, err := metaengine.PlanFromMemory(q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-
-	defer store.Close()
+	store := mustPlanFromMemory(t, q)
 
 	ctx := context.Background()
 

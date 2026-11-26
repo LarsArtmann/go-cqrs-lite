@@ -43,7 +43,7 @@ func NewB004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				f, err := findingTemplate.Builder(
 					"B004",
 					fmt.Sprintf(
-						"Command %s has %d fields — consider using cqrs-gen to generate constructors",
+						"Command %s has %d fields and no constructor: mark it with //cqrs:command and run cqrs-gen",
 						cmd.Name,
 						len(cmd.Fields)+len(cmd.Embeds),
 					),
@@ -52,7 +52,8 @@ func NewB004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 					WithCategory(finding.CategoryBestPractice).
 					WithConfidence(finding.ConfidenceMedium).
-					WithSuggestion("Run cqrs-gen to auto-generate typed constructors from struct tags").
+					WithSuggestion("cqrs-gen derives New" + cmd.Name + " for a command that embeds " +
+						"*command.BasicCommand, and its registration next to it").
 					WithSnippet(ctx.SourceLine(cmd.File, cmd.Pos.Line)).
 					Build()
 				if err != nil {

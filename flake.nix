@@ -1400,7 +1400,9 @@
               mkApp "check-release-scripts"
                 [
                   pkgs.bash
+                  pkgs.coreutils
                   pkgs.git
+                  pkgs.gnugrep
                   goPkg
                 ]
                 ''
@@ -1424,6 +1426,7 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-changelog-coverage.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/probe-proxy-tags.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-nix-hashes.sh" --self-test
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/erraudit-sweep.sh" --self-test
                   CALIB_GATE_LOADAVG_FILE="$(mktemp)" CI=false ${pkgs.bash}/bin/bash -c 'printf "40.0 55.0 1.0 1/1 1\n" > "$CALIB_GATE_LOADAVG_FILE"; bash "$PWD/scripts/verify-load-guard.sh" >/dev/null 2>&1; rc=$?; if [ "$rc" -ne 12 ]; then echo "verify-load-guard self-test: loud load must refuse with rc=12, got $rc" >&2; exit 1; fi'
                 '';
 
@@ -1892,10 +1895,12 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-generated-artifacts.sh" "$@"
                 '';
 
-            # erraudit: one-command wrapper around the vendored-tarball build
-            # + the all-modules error-policy sweep (the local mirror of the
-            # CI error-audit job). Takes the same optional binary-path
-            # override as scripts/erraudit-sweep.sh.
+            # erraudit: the all-modules error-policy sweep (the local mirror of
+            # the CI error-audit job; CI runs the same script). Runs whatever
+            # erraudit is installed on PATH — nothing is vendored. Takes the
+            # same arguments as scripts/erraudit-sweep.sh: an optional
+            # binary-path override (or ERRAUDIT_BIN), --update-baseline,
+            # --self-test.
             erraudit =
               mkApp "erraudit"
                 [
@@ -1903,8 +1908,9 @@
                   pkgs.bash
                   pkgs.coreutils
                   pkgs.findutils
-                  pkgs.gnutar
+                  pkgs.gawk
                   pkgs.gnugrep
+                  pkgs.jq
                 ]
                 ''
                   # shellcheck disable=SC1091

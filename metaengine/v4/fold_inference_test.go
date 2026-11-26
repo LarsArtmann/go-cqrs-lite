@@ -80,11 +80,7 @@ func TestInfer_BasicCreateDelete(t *testing.T) {
 		metaengine.Infer(inferUserCreated{}, inferUserDeleted{}),
 	)
 
-	store, err := metaengine.PlanFromMemory(q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-	defer store.Close()
+	store := mustPlanFromMemory(t, q)
 
 	ctx := context.Background()
 
@@ -132,11 +128,7 @@ func TestInfer_FullCRUDLifecycle(t *testing.T) {
 		metaengine.Infer(inferUserCreated{}, inferUserUpdated{}, inferUserDeleted{}),
 	)
 
-	store, err := metaengine.PlanFromMemory(q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-	defer store.Close()
+	store := mustPlanFromMemory(t, q)
 
 	ctx := context.Background()
 
@@ -206,11 +198,7 @@ func TestInfer_KeyFieldAutoDetected(t *testing.T) {
 		metaengine.Infer(inferUserCreated{}),
 	)
 
-	store, err := metaengine.PlanFromMemory(q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-	defer store.Close()
+	store := mustPlanFromMemory(t, q)
 
 	ctx := context.Background()
 
@@ -242,11 +230,7 @@ func TestInfer_NestedStructFlattening(t *testing.T) {
 		metaengine.Infer(inferProfileCreated{}),
 	)
 
-	store, err := metaengine.PlanFromMemory(q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-	defer store.Close()
+	store := mustPlanFromMemory(t, q)
 
 	ctx := context.Background()
 
@@ -287,11 +271,7 @@ func TestInfer_AutoFilterDetection(t *testing.T) {
 		metaengine.Infer(inferUserCreated{}),
 	)
 
-	store, err := metaengine.PlanFromMemory(q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-	defer store.Close()
+	store := mustPlanFromMemory(t, q)
 
 	ctx := context.Background()
 
@@ -330,11 +310,7 @@ func TestInfer_PartialUpdate(t *testing.T) {
 		metaengine.Infer(inferUserCreated{}, inferUserUpdated{}),
 	)
 
-	store, err := metaengine.PlanFromMemory(q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-	defer store.Close()
+	store := mustPlanFromMemory(t, q)
 
 	ctx := context.Background()
 
@@ -375,11 +351,7 @@ func TestInfer_OnlyCreated(t *testing.T) {
 		metaengine.Infer(inferUserCreated{}),
 	)
 
-	store, err := metaengine.PlanFromMemory(q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-	defer store.Close()
+	store := mustPlanFromMemory(t, q)
 
 	ctx := context.Background()
 

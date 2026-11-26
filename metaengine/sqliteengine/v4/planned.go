@@ -252,6 +252,7 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 		return metaengine.ScanResult{}, err
 	}
 
+	// art-dupl:accept cross-engine paging tail; the row scan is per dialect and each engine is its own go.mod
 	rows, keys, err := scanJSONValuesWithKeys(ctx, e.xd(ctx), query, args...)
 	if err != nil {
 		return metaengine.ScanResult{}, err

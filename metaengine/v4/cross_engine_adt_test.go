@@ -21,8 +21,6 @@ import (
 // TestCrossEngineCounterParity — CounterIncrement + CounterGet produce
 // identical results across memory and SQLite engines.
 func TestCrossEngineCounterParity(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 	deltas := []metaengine.Delta{
 		{"alpha": 1, "beta": 5},
@@ -39,9 +37,10 @@ func TestCrossEngineCounterParity(t *testing.T) {
 	results := make(map[string]map[string]int64, len(engines))
 	var resultsMu sync.Mutex
 
+	// Neither this test nor its subtests run in parallel: the parity check
+	// below reads what the subtests recorded, and parallel subtests have not
+	// run yet when the loop returns.
 	for name, eng := range engines {
-		// Sequential on purpose: the parity check below reads what the subtests
-		// recorded, which a parallel subtest has not done yet when it returns.
 		t.Run(name, func(t *testing.T) {
 			cb, ok := eng.(metaengine.CounterBackend)
 			if !ok {
@@ -76,8 +75,6 @@ func TestCrossEngineCounterParity(t *testing.T) {
 // TestCrossEngineSetParity — SetAdd + SetContains produce identical membership
 // results across memory and SQLite engines.
 func TestCrossEngineSetParity(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 	add := []string{"apple", "banana", "cherry", "date"}
 	probe := []string{"apple", "banana", "cherry", "date", "elderberry", "fig"}
@@ -177,7 +174,8 @@ func assertCrossEngineCountersEq(
 
 	sort.Strings(sortedKeys)
 
-	var memVals, sqliteVals []string
+	memVals := make([]string, 0, len(sortedKeys))
+	sqliteVals := make([]string, 0, len(sortedKeys))
 
 	for _, k := range sortedKeys {
 		memVals = append(memVals, fmt.Sprintf("%s=%d", k, results["memory"][k]))
@@ -212,8 +210,6 @@ func assertCrossEngineSetEq(
 // path via ScanBackend.MapScan) produces identical ordered results across
 // memory and SQLite engines, including limit truncation.
 func TestCrossEngineSortedMapParity(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 
 	tasks := []TaskCreated{

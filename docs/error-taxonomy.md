@@ -232,6 +232,8 @@ errorfamily.Classify(err) // => Conflict
 | -                  | Infrastructure | `projectionhost.check_staleness`            |
 | -                  | Transient      | `projectionhost.check_staleness`            |
 | -                  | Rejection      | `projectionhost.checkpoint_store_required`  |
+| -                  | Corruption     | `projectionhost.dlq_corrupt_event_id`       |
+| -                  | Corruption     | `projectionhost.dlq_corrupt_failed_at`      |
 | -                  | Infrastructure | `projectionhost.dlq_count`                  |
 | -                  | Infrastructure | `projectionhost.dlq_delete`                 |
 | -                  | Infrastructure | `projectionhost.dlq_list`                   |
@@ -259,7 +261,7 @@ errorfamily.Classify(err) // => Conflict
 | -                  | Rejection      | `projectionhost.unknown_projection`         |
 | ErrWorkerFailed    | Infrastructure | `projectionhost.worker_failed`              |
 
-- 30 of 32 codes are inline mints (no named sentinel)
+- 32 of 34 codes are inline mints (no named sentinel)
 
 ### claiming/v4
 
@@ -788,10 +790,12 @@ errorfamily.Classify(err) // => Conflict
 
 ### storage (SQL facade)
 
-Manual claims (outside the generated region): the pinned erraudit v0.7.0
-export cannot yet link these turso-sync mints, but the source mints them
-(`storage/turso/sync.go`) and check-error-taxonomy's rg pool demands them.
-Retire these rows when the vendored erraudit pin bumps past the fix.
+Manual claims (outside the generated region): the erraudit errorflow export
+cannot yet link these turso-sync mints (still true for the installed build
+`cb96501`, 2026-11-26), but the source mints them (`storage/turso/sync.go`)
+and check-error-taxonomy's rg pool demands them. Retire these rows once the
+installed erraudit links them: regenerate and check whether the generated
+storage section lists the four codes.
 
 | Error | Family         | Code                        |
 | ----- | -------------- | --------------------------- |

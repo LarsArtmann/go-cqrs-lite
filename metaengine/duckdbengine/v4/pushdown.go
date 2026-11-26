@@ -158,6 +158,7 @@ func (e *duckdbEngine) pushdownMapScanPlanned(
 
 	query, args := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
 
+	// art-dupl:accept cross-engine paging tail; the row scan is per dialect and each engine is its own go.mod
 	rows, keys, err := scanDuckDBJSONValuesWithKeys(ctx, e.conn(ctx), query, args...)
 	if err != nil {
 		return metaengine.ScanResult{}, err

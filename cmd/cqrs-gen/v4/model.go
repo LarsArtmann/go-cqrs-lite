@@ -34,14 +34,15 @@ const (
 )
 
 type marker struct {
-	kind       kind
-	structName string
-	wire       string
-	receives   bool
-	byValue    bool
-	constName  string
-	constExpr  string
-	pos        string
+	kind        kind
+	structName  string
+	wire        string
+	receives    bool
+	byValue     bool
+	constructor bool
+	constName   string
+	constExpr   string
+	pos         string
 }
 
 type pkg struct {
@@ -166,6 +167,10 @@ func eventName(m *marker) string {
 	return "New" + m.structName + "Event"
 }
 
+func constructorName(m *marker) string {
+	return "New" + m.structName
+}
+
 func (m *marker) valueType() string {
 	if m.byValue {
 		return m.structName
@@ -177,8 +182,11 @@ func (m *marker) valueType() string {
 func (m *marker) reservedNames() []string {
 	names := []string{registerName(m), handlerName(m), catalogFunc}
 
-	if m.kind == kindEvent {
+	switch {
+	case m.kind == kindEvent:
 		names = append(names, eventName(m))
+	case m.constructor:
+		names = append(names, constructorName(m))
 	}
 
 	return names

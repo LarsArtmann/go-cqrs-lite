@@ -185,14 +185,7 @@ func (s *System) timersState() string {
 //
 // Returns nil if all resources are healthy. Returns the first error otherwise.
 func (s *System) HealthCheck(ctx context.Context) error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	if s.stopped {
-		return ErrSystemStopped
-	}
-
-	return s.healthCheckLocked(ctx)
+	return s.probeUnlessStopped(ctx, s.healthCheckLocked)
 }
 
 // healthCheckLocked runs the resource checks shared by HealthCheck and

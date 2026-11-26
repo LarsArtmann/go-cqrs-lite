@@ -189,6 +189,7 @@ func (s *SSEStream[V]) Await(
 			if lastErr != nil {
 				detail += fmt.Sprintf("; stream error: %v", lastErr)
 			}
+
 			if ids := s.ReceivedIDs(); len(ids) > 0 {
 				detail += fmt.Sprintf("; wire ids: %v", ids)
 			}

@@ -17,13 +17,12 @@ import "context"
 //
 // A system that owns no background work is ready as soon as it is constructed.
 func (s *System) ReadyCheck(ctx context.Context) error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	return s.probeUnlessStopped(ctx, s.readinessLocked)
+}
 
-	if s.stopped {
-		return ErrSystemStopped
-	}
-
+// readinessLocked is the readiness part beyond "not stopped": the caller
+// holds s.mu for reading.
+func (s *System) readinessLocked(ctx context.Context) error {
 	if !s.started && (s.projHost != nil || len(s.timers) > 0) {
 		return ErrSystemNotStarted
 	}
@@ -33,4 +32,17 @@ func (s *System) ReadyCheck(ctx context.Context) error {
 	}
 
 	return s.healthCheckLocked(ctx)
+}
+
+// probeUnlessStopped runs check under s.mu (read) on a system that was not
+// closed; a stopped system answers ErrSystemStopped without running check.
+func (s *System) probeUnlessStopped(ctx context.Context, check func(context.Context) error) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.stopped {
+		return ErrSystemStopped
+	}
+
+	return check(ctx)
 }

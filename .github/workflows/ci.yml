@@ -1121,76 +1121,70 @@ jobs:
     timeout-minutes: 10
 
   # Error-policy gate — same self-activating mechanism as go-codec's
-  # Error-policy gate — same self-activating mechanism as go-codec's
-  # error-audit job. erraudit is a private module: instead of an
-  # ERRAUDIT_PAT secret (never set — the gate silently skipped for a
-  # month) or the Forgejo mirror (unreachable from GitHub-hosted
-  # runners), the job builds the pinned vendored source tarball in
-  # tools/erraudit/ — credential-free. See tools/erraudit/README.md.
-  # ACTIVATION PRECONDITION (met 2026-09-13, re-verified 2026-10-16 with
-  # v0.7.0 across all 104 modules via scripts/erraudit-sweep.sh): zero
-  # findings under `erraudit lint ./... --enforce-go-error-family
-  # --type-aware` in every module.
+  # error-audit job. erraudit is a private module (no proxy artifact): the
+  # job installs its LATEST release through the ERRAUDIT_PAT secret and
+  # skips with a visible warning while that secret is absent. No erraudit
+  # source is vendored in this repo; the local mirror is `nix run
+  # .#erraudit`, which runs whatever erraudit is installed on PATH.
+  # POLICY: a shrink-only ratchet per module (scripts/erraudit-baseline.txt).
+  # `--enforce-go-error-family` could not produce a finding on `erraudit
+  # lint` before v0.8.0, so the "zero findings" this job recorded against
+  # the old v0.7.0 pin was vacuous. The first real run (2026-11-26, erraudit
+  # cb96501) pinned 1998 findings in 65 modules; the gate now fails on any
+  # module that grows, on a new offender, and on a module that cannot be
+  # measured. scripts/erraudit-sweep.sh is the one implementation.
   error-audit:
     name: Error Audit (erraudit)
     runs-on: ubuntu-latest
     env:
-      ERRAUDIT_VERSION: v0.7.0
-      ERRAUDIT_SHA256: f726f94681da816ddbb3fab4a35f045da0efbc7cc7422dd4fd3be10b1aa46208
+      HAS_ERRAUDIT_PAT: ${{ secrets.ERRAUDIT_PAT != '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: go.mod
-      - name: Install erraudit (vendored source)
+      - name: Install erraudit (latest release)
+        if: env.HAS_ERRAUDIT_PAT == 'true'
+        env:
+          ERRAUDIT_PAT: ${{ secrets.ERRAUDIT_PAT }}
+          GOPRIVATE: github.com/larsartmann
+          GOEXPERIMENT: jsonv2
+        run: |
+          set -euo pipefail
+          git config --global url."https://x-access-token:${ERRAUDIT_PAT}@github.com/".insteadOf "https://github.com/"
+          go install github.com/larsartmann/erraudit/cmd/erraudit@latest
+          erraudit --version
+      - name: "Skipped: ERRAUDIT_PAT secret not set"
+        if: env.HAS_ERRAUDIT_PAT != 'true'
+        run: |
+          echo "::warning title=error-audit skipped::erraudit is a private module (no proxy artifact), so its latest release needs a credential. Add an ERRAUDIT_PAT secret with read access to github.com/larsartmann/erraudit to arm this gate. Until then only the local mirror runs: nix run .#erraudit"
+      - name: Enforce go-error-family error policy (per module, ratcheted)
+        if: env.HAS_ERRAUDIT_PAT == 'true'
         env:
           GOEXPERIMENT: jsonv2
         run: |
           set -euo pipefail
-          tarball="tools/erraudit/erraudit-${ERRAUDIT_VERSION}-src.tgz"
-          echo "${ERRAUDIT_SHA256}  ${tarball}" | sha256sum -c -
-          mkdir -p "${RUNNER_TEMP}/erraudit-src"
-          tar xzf "${tarball}" -C "${RUNNER_TEMP}/erraudit-src"
-          go build -C "${RUNNER_TEMP}/erraudit-src" -o "$(go env GOPATH)/bin/erraudit" ./cmd/erraudit
-          erraudit --help >/dev/null
-      - name: Enforce go-error-family error policy (per module)
-        env:
-          GOEXPERIMENT: jsonv2
-        run: |
-          set -euo pipefail
-          modules=$(find . -name go.mod -not -path './vendor/*' | sed 's|/go.mod||' | sed 's|^\./||' | sort)
-          status=0
-          for m in $modules; do
-            # --disable-extensions matches scripts/erraudit-sweep.sh (the local
-            # mirror): extension audits lint vendored JS (catalog/v4/docserver/
-            # static bundles) and cannot gate a Go error-policy leg.
-            if ! (cd "$m" && erraudit lint ./... --enforce-go-error-family --type-aware --disable-extensions); then
-              echo "::error module=$m::error-policy findings — run 'erraudit lint ./... --enforce-go-error-family --type-aware --disable-extensions' in $m" >&2
-              status=1
-            fi
-          done
-          exit "$status"
+          # One implementation for CI and the local mirror: the sweep runs the
+          # error-policy flags in every module and ratchets each module's
+          # finding count against scripts/erraudit-baseline.txt (shrink-only).
+          scripts/erraudit-sweep.sh
       - name: Errorflow export freshness (mesh-demo)
+        if: env.HAS_ERRAUDIT_PAT == 'true'
         env:
           GOEXPERIMENT: jsonv2
         run: |
           set -euo pipefail
           # example/mesh-demo/errorflow.json is a committed artifact the
           # hub consumes (-errors-file): it must always match what the
-          # pinned erraudit would export from the current source. The
-          # errorflow subcommand landed in erraudit v0.7.0 — until the
-          # vendored pin catches up this step warns instead of failing;
-          # bumping the pin activates it automatically.
-          oldest="$(printf '%s\n' v0.7.0 "$ERRAUDIT_VERSION" | sort -V | head -1)"
-          if [[ "$oldest" == "$ERRAUDIT_VERSION" && "$ERRAUDIT_VERSION" != v0.7.0 ]]; then
-            echo "::warning::errorflow freshness check needs erraudit >= v0.7.0 (pinned: $ERRAUDIT_VERSION) — it activates when the vendored pin bumps"
-            exit 0
-          fi
+          # installed erraudit exports from the current source. A new
+          # erraudit release that changes the export turns this step red:
+          # regenerate the file and commit it.
           cd example/mesh-demo
           erraudit errorflow ./... --type-aware -o errorflow.json
           cd ../..
           git diff --exit-code -- example/mesh-demo/errorflow.json
       - name: Error taxonomy doc freshness (generated region)
+        if: env.HAS_ERRAUDIT_PAT == 'true'
         env:
           GOEXPERIMENT: jsonv2
         run: |
@@ -1198,15 +1192,7 @@ jobs:
           # docs/error-taxonomy.md's marked region is GENERATED from the
           # gated modules' errorflow exports (scripts/generate-error-taxonomy.sh).
           # A stale region (hand edit, or source drift after a landed PR) fails
-          # here with the diff — regenerate and commit. Same activation gate
-          # as the errorflow-freshness step: needs erraudit >= v0.7.0 for the
-          # errorflow codes array; warns instead of failing until the vendored
-          # pin bumps.
-          oldest="$(printf '%s\n' v0.7.0 "$ERRAUDIT_VERSION" | sort -V | head -1)"
-          if [[ "$oldest" == "$ERRAUDIT_VERSION" && "$ERRAUDIT_VERSION" != v0.7.0 ]]; then
-            echo "::warning::taxonomy doc freshness needs erraudit >= v0.7.0 (pinned: $ERRAUDIT_VERSION) — it activates when the vendored pin bumps"
-            exit 0
-          fi
+          # here with the diff — regenerate and commit.
           scripts/generate-error-taxonomy.sh --check
 
 concurrency:

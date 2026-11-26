@@ -542,3 +542,41 @@ Two micro-disciplines that each cost a failed edit this stream:
   `actionlint .github/workflows/<file>` locally BEFORE the push that carries
   it; it is part of the pre-push candidate checklist
   (docs/status/2026-11-22_14-53_ci-heal-round3-honest-closeout-status.md §e.1).
+
+## erraudit `lint`: the enforce flags were decorative before v0.8.0, and v0.8.0 sees more (2026-11-26)
+
+- **Symptom**: removing the vendored v0.7.0 tarball (`tools/erraudit/`; owner
+  ruling: latest release in CI, the installed binary locally) turned the
+  all-modules sweep from a long-standing zero into thousands of findings.
+  Three separate causes, each verified against both binaries:
+  1. `--enforce-go-error-family` (like every `--enforce-*` flag) could not
+     produce a finding on `erraudit lint` before v0.8.0 (erraudit CHANGELOG
+     0.8.0 "Fixed": the lint merge ran the AST policy pass only under
+     `--enforce-generic-return`). The v0.7.0 binary prints nothing and exits
+     0 on `id/v4` even with `--no-suppress`. The gate's "zero findings" record
+     (2026-09-13 to 2026-11-26) was vacuous.
+  2. The JS/TS detectors joined `erraudit lint` in v0.8.0 and are NOT covered
+     by `--disable-extensions`: 25 hits in the vendored bundles
+     (`catalog/v4/docserver/static/asyncapi-react.js`, `scalar.js`), the class
+     the 2026-11-04 version-skew guard was added for.
+  3. Nested-module fan-out is the default since v0.8.0: a run in the repo
+     root analyzes every nested `go.mod`, so the root row equals the sum of
+     all other rows and doubles the sweep time.
+- **Fix that landed**: `scripts/erraudit-sweep.sh` is the one implementation
+  for CI and `nix run .#erraudit`. It measures each module with
+  `--modules=none --exclude docserver/static`, counts findings from
+  `--format json`, and ratchets every module against
+  `scripts/erraudit-baseline.txt` (shrink-only; first pin 2026-11-26: 1998
+  findings in 65 modules: 1722 `fmt.Errorf`, 248 `errors.New`, 27
+  `errors.Join`, 1 `legacy_is`). GREW, NEW, ERROR, DANGLING and BAD-ROW fail;
+  DOWN passes and asks for `--update-baseline`. The counts were identical
+  across three runs of the installed master build (cb96501) and across the
+  v0.8.0 release binary.
+- **Standing rules**: (a) a zero from an opt-in linter flag is unproven
+  until a planted violation has fired (erraudit's own CI pins expected
+  counts per mode for this reason); (b) after an erraudit upgrade run
+  `nix run .#erraudit` BEFORE `--update-baseline` and read every GREW row,
+  the update path lists rows that grew and never re-pins them silently;
+  (c) CI installs `@latest` while the machine runs the SystemNix master
+  build, so the two can differ by unreleased erraudit commits, which is why
+  the baseline header names the pinning version.

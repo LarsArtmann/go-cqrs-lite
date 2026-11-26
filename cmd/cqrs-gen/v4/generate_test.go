@@ -51,14 +51,15 @@ func RegisterGetTask[R any](
 	return system.RegisterQuery[*GetTask, R](sys, string(QueryGetTask), handler)
 }
 
-// NewTaskCreatedEvent builds the task.created event for a stream.
+// NewTaskCreatedEvent builds the task.created event for a stream; options reach event.New.
 func NewTaskCreatedEvent(
 	streamID id.StreamID,
 	streamType id.StreamType,
 	version event.Version,
 	payload TaskCreated,
+	opts ...event.Option,
 ) (event.Event, error) {
-	evt, err := event.New(EventTaskCreated, streamID, streamType, version, payload)
+	evt, err := event.New(EventTaskCreated, streamID, streamType, version, payload, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", EventTaskCreated, err)
 	}
@@ -112,14 +113,15 @@ func RegisterGetTaskHandler[R any](
 	return query.RegisterTyped[*GetTask, R](d, QueryGetTask, handler)
 }
 
-// NewTaskCreatedEvent builds the task.created event for a stream.
+// NewTaskCreatedEvent builds the task.created event for a stream; options reach event.New.
 func NewTaskCreatedEvent(
 	streamID id.StreamID,
 	streamType id.StreamType,
 	version event.Version,
 	payload TaskCreated,
+	opts ...event.Option,
 ) (event.Event, error) {
-	evt, err := event.New(EventTaskCreated, streamID, streamType, version, payload)
+	evt, err := event.New(EventTaskCreated, streamID, streamType, version, payload, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", EventTaskCreated, err)
 	}

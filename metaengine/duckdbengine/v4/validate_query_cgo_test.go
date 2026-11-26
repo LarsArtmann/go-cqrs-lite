@@ -58,6 +58,7 @@ func probeQuerySurfaces(
 	probes := []surfaceProbe{
 		{name: "Aggregate", col: true, rejected: func() bool {
 			_, err := eng.(metaengine.AggregateReader).Aggregate(ctx, "c", metaengine.AggregateSum, column, filters)
+
 			return err != nil
 		}()},
 		{name: "GroupedAggregate", col: true, grp: true, rejected: func() bool {
@@ -69,10 +70,12 @@ func probeQuerySurfaces(
 				groupBy,
 				filters,
 			)
+
 			return err != nil
 		}()},
 		{name: "MultiAggregate", col: true, rejected: func() bool {
 			_, err := eng.(metaengine.MultiAggregateReader).MultiAggregate(ctx, "c", specs, filters)
+
 			return err != nil
 		}()},
 		{name: "MultiGroupedAggregate", col: true, grp: true, rejected: func() bool {
@@ -83,22 +86,33 @@ func probeQuerySurfaces(
 				groupBy,
 				filters,
 			)
+
 			return err != nil
 		}()},
 		{name: "DistinctValues", col: true, rejected: func() bool {
 			_, err := eng.(metaengine.DistinctReader).DistinctValues(ctx, "c", column, filters)
+
 			return err != nil
 		}()},
 		{name: "PushdownMapScan", col: true, grp: true, rejected: func() bool {
 			_, err := eng.(interface {
-				PushdownMapScan(context.Context, string, []metaengine.FilterSpec, *metaengine.SortSpec, any, int) (metaengine.ScanResult, error)
+				PushdownMapScan(
+					ctx context.Context,
+					col string,
+					filters []metaengine.FilterSpec,
+					sort *metaengine.SortSpec,
+					cursor any,
+					limit int,
+				) (metaengine.ScanResult, error)
 			}).
 				PushdownMapScan(ctx, "c", filters, nil, nil, 10)
+
 			return err != nil
 		}()},
 		{name: "ExplainScanQuery", col: true, grp: true, rejected: func() bool {
 			sql, _ := eng.(metaengine.ExplainableScan).
 				ExplainScanQuery(ctx, "c", metaengine.ExplainOptions{Filters: filters})
+
 			return rejectedSQL(sql)
 		}()},
 		{name: "ExplainAggregateQuery", col: true, grp: true, rejected: func() bool {

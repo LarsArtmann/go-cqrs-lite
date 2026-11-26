@@ -3,7 +3,7 @@
 package duckdbengine_test
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -49,7 +49,7 @@ func TestDuckDB_EmptyFilterInMatchesNoRows(t *testing.T) {
 
 	for _, col := range collections {
 		for i := range 3 {
-			if err := mb.MapSet(ctx, col, fmt.Sprint(i), emptyInRow{Status: "open", N: float64(i)}); err != nil {
+			if err := mb.MapSet(ctx, col, strconv.Itoa(i), emptyInRow{Status: "open", N: float64(i)}); err != nil {
 				t.Fatalf("MapSet: %v", err)
 			}
 		}
@@ -57,6 +57,8 @@ func TestDuckDB_EmptyFilterInMatchesNoRows(t *testing.T) {
 
 	for _, col := range collections {
 		t.Run(col, func(t *testing.T) {
+			t.Parallel()
+
 			control, err := ps.PushdownMapScan(ctx, col, nil, nil, nil, 10)
 			if err != nil || len(control.Items) != 3 {
 				t.Fatalf("control scan: items=%d err=%v", len(control.Items), err)

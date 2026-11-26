@@ -47,11 +47,7 @@ func TestInfer_CompositeKey(t *testing.T) {
 		metaengine.Infer(orderLineCreated{}, orderLineDeleted{}),
 	)
 
-	store, err := metaengine.PlanFromMemory(q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-	defer store.Close()
+	store := mustPlanFromMemory(t, q)
 
 	ctx := context.Background()
 
@@ -146,11 +142,7 @@ func TestInfer_FilterOperatorInference(t *testing.T) {
 		metaengine.Infer(scoredItemCreated{}),
 	)
 
-	store, err := metaengine.PlanFromMemory(q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-	defer store.Close()
+	store := mustPlanFromMemory(t, q)
 
 	ctx := context.Background()
 
@@ -209,11 +201,7 @@ func TestInfer_SortInference(t *testing.T) {
 		metaengine.Infer(eventLogCreated{}),
 	)
 
-	store, err := metaengine.PlanFromMemory(q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-	defer store.Close()
+	store := mustPlanFromMemory(t, q)
 
 	ctx := context.Background()
 	base := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -276,11 +264,7 @@ func TestInferFromNamedEvents_BasicCRUD(t *testing.T) {
 		),
 	)
 
-	store, err := metaengine.PlanFromMemory(q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-	defer store.Close()
+	store := mustPlanFromMemory(t, q)
 
 	ctx := context.Background()
 
@@ -372,11 +356,7 @@ func TestInfer_SliceOfStructField(t *testing.T) {
 		metaengine.Infer(messageWithAttachmentsCreated{}),
 	)
 
-	store, err := metaengine.PlanFromMemory(q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-	defer store.Close()
+	store := mustPlanFromMemory(t, q)
 
 	ctx := context.Background()
 

@@ -46,6 +46,7 @@ func (h *Host) waitUntilStopped(ctx context.Context) error {
 
 	select {
 	case <-ctx.Done():
+		//nolint:contextcheck // Stop's frozen v4 signature takes no ctx; it bounds shutdown by its own shutdownTimeout
 		return h.Stop()
 	case <-exited:
 		return nil

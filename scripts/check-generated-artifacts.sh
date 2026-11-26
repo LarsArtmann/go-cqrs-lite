@@ -9,8 +9,8 @@
 # network-bound render validation, not a regen+diff, and stays separate):
 #   1. docs-ui.css           — scripts/build-docserver-css.sh --check
 #   2. error-taxonomy        — scripts/generate-error-taxonomy.sh --check
-#                              (needs an erraudit errorflow binary; reuses
-#                              the vendored-tarball cache build)
+#                              (needs an erraudit errorflow binary: the one
+#                              installed on PATH, or $ERRAUDIT_BIN)
 #   3. engine-capabilities   — scripts/check-engine-capabilities.sh (the
 #                              gate IS the drift check; --update regenerates)
 #   4. api golden            — cmd/api-stability --update, then
@@ -42,14 +42,9 @@ api_surface="$repo_root/docs/api_surface.txt"
 # shellcheck source=scripts/go-env.sh
 source "$repo_root/scripts/go-env.sh"
 
-# The vendored erraudit cache build (scripts/erraudit-sweep.sh builds it
-# from tools/erraudit/*-src.tgz); fall back to any erraudit on PATH.
-vendored_erraudit="${XDG_CACHE_HOME:-$HOME/.cache}/erraudit-sweep/erraudit"
-if [ -x "$vendored_erraudit" ]; then
-	erraudit_bin="$vendored_erraudit"
-else
-	erraudit_bin="$(command -v erraudit || true)"
-fi
+# erraudit: whatever binary is installed on PATH (or $ERRAUDIT_BIN). No
+# erraudit source is vendored in this repo.
+erraudit_bin="${ERRAUDIT_BIN:-$(command -v erraudit || true)}"
 
 leg_docs_ui_css() {
 	"$repo_root/scripts/build-docserver-css.sh" --check
@@ -57,7 +52,7 @@ leg_docs_ui_css() {
 
 leg_error_taxonomy() {
 	if [ -z "$erraudit_bin" ]; then
-		echo "    SKIP: no erraudit binary (run 'nix run .#erraudit' once to build the vendored one)" >&2
+		echo "    SKIP: no erraudit binary on PATH (set ERRAUDIT_BIN=/path/to/erraudit)" >&2
 		return 3
 	fi
 

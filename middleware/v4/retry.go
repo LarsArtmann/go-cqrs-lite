@@ -115,6 +115,7 @@ func retry(
 		InitialDelay: config.InitialDelay,
 		MaxDelay:     config.MaxDelay,
 		Multiplier:   config.Multiplier,
+		DelayFunc:    nil,
 		IsRetryable:  isRetryable,
 		OnRetry: func(attempt int, delay time.Duration, err error) {
 			if logger != nil {
@@ -157,6 +158,6 @@ func retry(
 		return errorfamily.WrapInfrastructure(ErrRetryCanceled, "middleware.retry_canceled",
 			entry.Type+": retry canceled").WithCause(err)
 	default:
-		return err
+		return fmt.Errorf("middleware: retry: %w", err)
 	}
 }

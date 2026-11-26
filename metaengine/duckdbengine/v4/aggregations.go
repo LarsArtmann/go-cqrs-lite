@@ -423,6 +423,7 @@ func (e *duckdbEngine) MultiAggregate(
 		return nil, errNoSpecs
 	}
 
+	// art-dupl:accept grouped-aggregate spec validation mirrors the other SQL engine; the engine name in the error is kept
 	for i, s := range specs {
 		if err := metaengine.RejectInvalidAggregateFn(s.Fn); err != nil {
 			return nil, fmt.Errorf("duckdbengine.MultiAggregate spec %d: %w", i, err)
@@ -532,6 +533,7 @@ func (e *duckdbEngine) MultiGroupedAggregate(
 		return nil, errNoGroupedSpecs
 	}
 
+	// art-dupl:accept grouped-aggregate spec validation mirrors the other SQL engine; the engine name in the error is kept
 	for i, s := range specs {
 		if err := metaengine.RejectInvalidAggregateFn(s.Fn); err != nil {
 			return nil, fmt.Errorf("duckdbengine.MultiGroupedAggregate spec %d: %w", i, err)
