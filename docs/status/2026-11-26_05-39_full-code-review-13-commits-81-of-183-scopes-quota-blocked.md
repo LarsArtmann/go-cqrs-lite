@@ -17,17 +17,17 @@ limit at about 02:20 CET, so no agent is running now.
 
 ## Numbers at a glance
 
-| Area                                   | State                                                                     |
-| -------------------------------------- | ------------------------------------------------------------------------- |
-| Commits on local `master`              | 13 (5e43dbf8f … 65a516213), none pushed                                   |
-| CI on origin                           | still red at `28db93fe7` (111 of 141 jobs)                                |
-| Review scopes                          | 81 of 183 complete (tier 1 complete, tier 2 at S080)                      |
-| Findings                               | 1,437: P0 3, P1 102, P2 695, P3 628                                       |
-| P0/P1 decided by a second reader       | 61: 49 fixed with regression tests, 11 owner decisions, 1 false positive  |
-| P0/P1 not yet re-verified              | about 44                                                                 |
-| Owner issues #132 to #141              | 6 fixed, 1 documented (#134), 1 decision written (#136)                   |
-| Known open lint findings at HEAD       | 8 (4 modules)                                                             |
-| Interrupted, uncommitted               | the cqrs-lint fixer batch (13 files in `cmd/cqrs-lint/v4`, builds)        |
+| Area                             | State                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------ |
+| Commits on local `master`        | 13 (5e43dbf8f … 65a516213), none pushed                                  |
+| CI on origin                     | still red at `28db93fe7` (111 of 141 jobs)                               |
+| Review scopes                    | 81 of 183 complete (tier 1 complete, tier 2 at S080)                     |
+| Findings                         | 1,437: P0 3, P1 102, P2 695, P3 628                                      |
+| P0/P1 decided by a second reader | 61: 49 fixed with regression tests, 11 owner decisions, 1 false positive |
+| P0/P1 not yet re-verified        | about 44                                                                 |
+| Owner issues #132 to #141        | 6 fixed, 1 documented (#134), 1 decision written (#136)                  |
+| Known open lint findings at HEAD | 8 (4 modules)                                                            |
+| Interrupted, uncommitted         | the cqrs-lint fixer batch (13 files in `cmd/cqrs-lint/v4`, builds)       |
 
 ## a) Fully done
 
@@ -43,16 +43,16 @@ placeholder-hash tripwire passed.
 
 **Owner issues (M03).**
 
-| Issue | What landed                                                                                                   | Commit     |
-| ----- | ------------------------------------------------------------------------------------------------------------- | ---------- |
-| #141  | `RetryConfig.IsRetryable` nil now means the documented default instead of a panic                              | d96d43e87  |
-| #133  | folds without an insert fold and without a key extractor fail at registration                                 | d96d43e87  |
-| #139  | `System.ReadyCheck` added; `HealthCheck` documented as liveness; `Health` gained a timers segment             | d96d43e87  |
-| #135  | `system.Unlimited()` and `system.Exact()`; `Limit` and `After` docs corrected                                  | d96d43e87  |
-| #132  | warn-only on v4: `System.Start` doc plus a warning for timers (d96d43e87) and for projection workers (9a60858d3) | both       |
-| #138  | cqrs-lint registers event types passed in a literal `[]event.Type` to `event.NewEvents`                       | e3669d3c3  |
-| #134  | await contract documented on `TimeAdvances`, `Then` and siblings                                             | d76a882ce  |
-| #136  | not implemented; decision text written (see section g)                                                       | none       |
+| Issue | What landed                                                                                                      | Commit    |
+| ----- | ---------------------------------------------------------------------------------------------------------------- | --------- |
+| #141  | `RetryConfig.IsRetryable` nil now means the documented default instead of a panic                                | d96d43e87 |
+| #133  | folds without an insert fold and without a key extractor fail at registration                                    | d96d43e87 |
+| #139  | `System.ReadyCheck` added; `HealthCheck` documented as liveness; `Health` gained a timers segment                | d96d43e87 |
+| #135  | `system.Unlimited()` and `system.Exact()`; `Limit` and `After` docs corrected                                    | d96d43e87 |
+| #132  | warn-only on v4: `System.Start` doc plus a warning for timers (d96d43e87) and for projection workers (9a60858d3) | both      |
+| #138  | cqrs-lint registers event types passed in a literal `[]event.Type` to `event.NewEvents`                          | e3669d3c3 |
+| #134  | await contract documented on `TimeAdvances`, `Then` and siblings                                                 | d76a882ce |
+| #136  | not implemented; decision text written (see section g)                                                           | none      |
 
 **Review.** All 35 tier-1 scopes and `N-infra-1` are reviewed; tier 2 is reviewed through
 S080. 81 scopes, 1,437 findings, every one with file, line, quoted evidence and a
@@ -62,15 +62,15 @@ filter-index scan dropping every filter but the first (not yet verified).
 
 **Fixes from reviewer findings, each with a failing-then-passing test.**
 
-| Commit    | Module                    | Fixed                                                                                              | Left open |
-| --------- | ------------------------- | -------------------------------------------------------------------------------------------------- | --------- |
-| a20e217b0 | metaengine/v4             | validation before aggregate pushdown; idempotency key recorded after the apply; `ScanPage` and `WithDefaultLimit`; typed-slice `FilterIn`; spatial index per collection | 3 |
-| 7aa1e4744 | metaengine/v4             | atomic hooks; `RecordTrace` keeps all seven callbacks; plan rules under the store lock; composite keys by field name; nil and pointer samples; `Import` doc | 3 |
-| 28a537800 | projectionhost, system    | `RegisterAndWait` blocks; dead-letter `Delete` by event ID; corrupt dead-letter rows skipped, not invented; duplicate `Evolution` rejected; warnings for shadowed wiring; `Health` doc | 1 |
-| faf9fc065 | metaengine, storage, scenario | five tests that could not fail or tested memory against memory now run on SQLite; tests for `SQLBackend.KVStore` and `SSEStream.ReceivedIDs` (gate was red) | 1 |
-| d76a882ce | system, scenario, host    | `TrimStream` and legacy snapshots; `Adopt` binds the clock; no dead-letter on worker cancel; failed worker retires its live handler | 1 |
-| 6ed4190d0 | sqlite, duckdb, pg engines | query validation on aggregate, distinct, raw and explain paths; foreign transaction no longer adopted; pg `MapUpdate` lost update (real PostgreSQL 17); 15 Ginkgo specs now run | 2 |
-| 65a516213 | metaengine, 4 SQL engines | shared `metaengine.ValidateQueryIdents`; empty `IN` matches no rows; pg and mysql validation; mysql `MapUpdate` (real MariaDB); `ExplainScanQuery` | 0 |
+| Commit    | Module                        | Fixed                                                                                                                                                                                  | Left open |
+| --------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| a20e217b0 | metaengine/v4                 | validation before aggregate pushdown; idempotency key recorded after the apply; `ScanPage` and `WithDefaultLimit`; typed-slice `FilterIn`; spatial index per collection                | 3         |
+| 7aa1e4744 | metaengine/v4                 | atomic hooks; `RecordTrace` keeps all seven callbacks; plan rules under the store lock; composite keys by field name; nil and pointer samples; `Import` doc                            | 3         |
+| 28a537800 | projectionhost, system        | `RegisterAndWait` blocks; dead-letter `Delete` by event ID; corrupt dead-letter rows skipped, not invented; duplicate `Evolution` rejected; warnings for shadowed wiring; `Health` doc | 1         |
+| faf9fc065 | metaengine, storage, scenario | five tests that could not fail or tested memory against memory now run on SQLite; tests for `SQLBackend.KVStore` and `SSEStream.ReceivedIDs` (gate was red)                            | 1         |
+| d76a882ce | system, scenario, host        | `TrimStream` and legacy snapshots; `Adopt` binds the clock; no dead-letter on worker cancel; failed worker retires its live handler                                                    | 1         |
+| 6ed4190d0 | sqlite, duckdb, pg engines    | query validation on aggregate, distinct, raw and explain paths; foreign transaction no longer adopted; pg `MapUpdate` lost update (real PostgreSQL 17); 15 Ginkgo specs now run        | 2         |
+| 65a516213 | metaengine, 4 SQL engines     | shared `metaengine.ValidateQueryIdents`; empty `IN` matches no rows; pg and mysql validation; mysql `MapUpdate` (real MariaDB); `ExplainScanQuery`                                     | 0         |
 
 **Verification receipts.** After the host and system fixes all 22 suites of the changed
 modules, their consumers and the ten examples passed, plus `-race` on `system/v4` and

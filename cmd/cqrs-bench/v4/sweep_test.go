@@ -18,8 +18,10 @@ type sweepPoint struct {
 func mustSweep(t *testing.T, extra ...string) []sweepPoint {
 	t.Helper()
 
-	args := append([]string{"sweep", "--param", "workers", "--backend", "memory", "--profile", "dev",
-		"--format", "json", "--quiet"}, extra...)
+	args := append([]string{
+		"sweep", "--param", "workers", "--backend", "memory", "--profile", "dev",
+		"--format", "json", "--quiet",
+	}, extra...)
 
 	run := mustRunBench(t, t.TempDir(), args...)
 
@@ -66,8 +68,10 @@ func TestCLI_Sweep_Formats(t *testing.T) {
 		t.Run(tc.format, func(t *testing.T) {
 			t.Parallel()
 
-			args := []string{"sweep", "--param", "workers", "--values", "1,2", "--backend", "memory",
-				"--profile", "dev", "--format", tc.format, "--quiet"}
+			args := []string{
+				"sweep", "--param", "workers", "--values", "1,2", "--backend", "memory",
+				"--profile", "dev", "--format", tc.format, "--quiet",
+			}
 
 			run := mustRunBench(t, t.TempDir(), args...)
 

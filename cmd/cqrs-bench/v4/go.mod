@@ -4,6 +4,7 @@ go 1.27
 
 require (
 	github.com/larsartmann/cmdguard/v5 v5.1.0
+	github.com/larsartmann/go-atomic-write v0.6.2
 	github.com/larsartmann/go-codec v0.3.4
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.26.1
@@ -17,7 +18,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/turso/v4 v4.4.3
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.19.1
-	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-output v0.38.7
 	github.com/larsartmann/go-output/delimited v0.38.7
 	github.com/larsartmann/go-output/markdown v0.38.7
@@ -87,7 +87,6 @@ require (
 	github.com/knadh/koanf/v2 v2.4.1 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/larsartmann/go-atomic-write v0.6.2 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.2 // indirect
@@ -117,6 +116,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/turso/v4 v4.3.6 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0 // indirect
+	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
 	github.com/larsartmann/go-output/d2 v0.38.7 // indirect

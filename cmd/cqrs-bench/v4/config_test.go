@@ -225,8 +225,10 @@ func TestBudgetContext(t *testing.T) {
 		want    time.Duration
 	}{
 		{name: "one budget per run", budget: time.Minute, runs: 3, want: 3 * time.Minute},
-		{name: "at least the soak duration", budget: time.Minute, runs: 1, atLeast: 10 * time.Minute,
-			want: 10 * time.Minute},
+		{
+			name: "at least the soak duration", budget: time.Minute, runs: 1, atLeast: 10 * time.Minute,
+			want: 10 * time.Minute,
+		},
 		{name: "zero runs still get one budget", budget: time.Minute, runs: 0, want: time.Minute},
 	}
 

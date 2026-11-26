@@ -75,7 +75,7 @@ func run() error {
 	scheduler := scheduling.New(
 		store,
 		func(_ context.Context, t scheduling.Timer[reminder]) error {
-			atomic.AddInt64(&stats.fired, 1)
+			stats.fired.Add(1)
 			fired.Add(ctx, 1)
 			log.Printf("fired %s: order %s — %s", t.ID.Get(), t.Payload.OrderID, t.Payload.Note)
 
@@ -124,7 +124,7 @@ func run() error {
 // the StartedAt anchor are the honest observable state.
 type runStats struct {
 	startedAt time.Time
-	fired     int64
+	fired     atomic.Int64
 }
 
 type statusSnapshot struct {
@@ -135,7 +135,7 @@ type statusSnapshot struct {
 
 func (s *runStats) handler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
-		fired := atomic.LoadInt64(&s.fired)
+		fired := s.fired.Load()
 		minutes := time.Since(s.startedAt).Minutes()
 
 		rate := 0.0

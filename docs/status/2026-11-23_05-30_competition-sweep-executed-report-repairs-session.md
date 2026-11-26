@@ -142,7 +142,7 @@ defect list from the 2026-11-21 contracts report. Not a project-wide audit.
 
 ---
 
-*Written 2026-11-23 ~05:30. The sweep artifacts: `docs/competition/`
+_Written 2026-11-23 ~05:30. The sweep artifacts: `docs/competition/`
 (22 pages + index, all parent-verified). The report repairs: dated amendments
 inside the two shipped reports. The kit checklist: SKILLS repo,
-`references/html-output-guide.md`. Auto-commit daemon owns the tree.*
+`references/html-output-guide.md`. Auto-commit daemon owns the tree._

@@ -435,32 +435,32 @@ are not detectors; listing one in `rules.disable` is a silent no-op.
 
 ## API Misuse Rules
 
-| ID   | Rule                                        | Severity | Description                                                                         |
-| ---- | ------------------------------------------- | -------- | ----------------------------------------------------------------------------------- |
-| A001 | manual-command-interface                    | Error    | Manual Type()/ID()/AggregateID() instead of BasicCommand                            |
-| A002 | newevent-manual-marshal                     | Warning  | event.NewEvent with json.Marshal — use event.New                                    |
-| A003 | explicit-codec-in-decode                    | Info     | Explicit codec — use DecodePayloadAuto                                              |
-| A004 | untyped-dispatch-register                   | Warning  | Type assertion in handler — use RegisterTyped                                       |
-| A005 | custom-projection-runner                    | Warning  | Manual bus.SubscribeAll — use projectionhost                                        |
-| A006 | adapter-layer-wrapping                      | Info     | WrapEvent/UnwrapEvent adapter methods                                               |
-| A007 | dual-model-oo-functional                    | Error    | Both OO aggregates and functional deciders                                          |
-| A008 | parallel-type-system                        | Error    | Custom AggregateID/Version types duplicating library                                |
-| A009 | missing-stack-preset                        | Info     | No stack/ preset — manual wiring is error-prone                                     |
-| A010 | custom-error-types                          | Warning  | Custom error interface duplicating go-error-family                                  |
-| A011 | inconsistent-json-key-casing-event-payloads | Info     | Event payload structs with mixed JSON key casing                                    |
-| A012 | missing-tombstone-handling                  | Info     | Fold function does not check for tombstone events                                   |
-| A013 | pointer-vs-value-basic-command              | Warning  | Embeds BasicCommand by value — cannot satisfy command.Command                       |
+| ID   | Rule                                        | Severity | Description                                                                                   |
+| ---- | ------------------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
+| A001 | manual-command-interface                    | Error    | Manual Type()/ID()/AggregateID() instead of BasicCommand                                      |
+| A002 | newevent-manual-marshal                     | Warning  | event.NewEvent with json.Marshal — use event.New                                              |
+| A003 | explicit-codec-in-decode                    | Info     | Explicit codec — use DecodePayloadAuto                                                        |
+| A004 | untyped-dispatch-register                   | Warning  | Type assertion in handler — use RegisterTyped                                                 |
+| A005 | custom-projection-runner                    | Warning  | Manual bus.SubscribeAll — use projectionhost                                                  |
+| A006 | adapter-layer-wrapping                      | Info     | WrapEvent/UnwrapEvent adapter methods                                                         |
+| A007 | dual-model-oo-functional                    | Error    | Both OO aggregates and functional deciders                                                    |
+| A008 | parallel-type-system                        | Error    | Custom AggregateID/Version types duplicating library                                          |
+| A009 | missing-stack-preset                        | Info     | No stack/ preset — manual wiring is error-prone                                               |
+| A010 | custom-error-types                          | Warning  | Custom error interface duplicating go-error-family                                            |
+| A011 | inconsistent-json-key-casing-event-payloads | Info     | Event payload structs with mixed JSON key casing                                              |
+| A012 | missing-tombstone-handling                  | Info     | Fold function does not check for tombstone events                                             |
+| A013 | pointer-vs-value-basic-command              | Warning  | Embeds BasicCommand by value — cannot satisfy command.Command                                 |
 | A014 | deprecated-api-usage                        | Warning  | Calls to APIs the library marks Deprecated (v3-compat aggregate names, ParseType, tombstones) |
-| A015 | global-mutable-state                        | Error    | Global mutable variable — race condition risk                                       |
-| A016 | missing-idempotency-middleware              | Warning  | Command dispatcher lacks idempotency middleware                                     |
-| A017 | missing-snapshot-strategy                   | Warning  | Repository without snapshot strategy — slow aggregates                              |
-| A018 | no-actual-event-sourcing                    | Info     | Imports go-cqrs-lite but never calls Save/Publish                                   |
-| A019 | vendored-cqrs                               | Warning  | Vendored copy of go-cqrs-lite detected                                              |
-| A027 | repeated-withcodec                          | Info     | event.WithCodec called 3+ times in one file — set codec once via event.DefaultCodec |
-| A030 | incomplete-snapshot-config                  | Error    | WithSnapshotStrategy without WithSnapshotStore — ErrIncompleteSnapshotConfig        |
-| A032 | string-id-instead-of-branded                | Warning  | Struct field named *ID with type string/int — use id.Of[T] branded ID               |
-| A033 | branded-id-string-roundtrip                 | Warning  | `id.Parse[T](x.String())` — pointless branded-ID roundtrip, discards typed value    |
-| A034 | metaengine-execute-untyped                  | Warning  | metaengine.Execute returns any — use ExecuteTyped[Q,R] for compile-time type safety |
+| A015 | global-mutable-state                        | Error    | Global mutable variable — race condition risk                                                 |
+| A016 | missing-idempotency-middleware              | Warning  | Command dispatcher lacks idempotency middleware                                               |
+| A017 | missing-snapshot-strategy                   | Warning  | Repository without snapshot strategy — slow aggregates                                        |
+| A018 | no-actual-event-sourcing                    | Info     | Imports go-cqrs-lite but never calls Save/Publish                                             |
+| A019 | vendored-cqrs                               | Warning  | Vendored copy of go-cqrs-lite detected                                                        |
+| A027 | repeated-withcodec                          | Info     | event.WithCodec called 3+ times in one file — set codec once via event.DefaultCodec           |
+| A030 | incomplete-snapshot-config                  | Error    | WithSnapshotStrategy without WithSnapshotStore — ErrIncompleteSnapshotConfig                  |
+| A032 | string-id-instead-of-branded                | Warning  | Struct field named *ID with type string/int — use id.Of[T] branded ID                         |
+| A033 | branded-id-string-roundtrip                 | Warning  | `id.Parse[T](x.String())` — pointless branded-ID roundtrip, discards typed value              |
+| A034 | metaengine-execute-untyped                  | Warning  | metaengine.Execute returns any — use ExecuteTyped[Q,R] for compile-time type safety           |
 
 ## Boilerplate Rules
 

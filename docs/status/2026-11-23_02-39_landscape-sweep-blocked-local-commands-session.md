@@ -133,6 +133,7 @@ GopherJS correction (prior session's report, amended this session).
 ## f) Up to 50 next things
 
 **Blocked-work resumption (ISP + quota dependent):**
+
 1. When ISP stabilizes: retry GLM-5.3 via fireworks/synthetic for the
    competition sweep (prompt is ready; nothing to redo)
    — done 2026-11-23: ISP healed; zai glm-5.3 (default route) accepted
@@ -155,8 +156,8 @@ GopherJS correction (prior session's report, amended this session).
 
 **D40-gated (contracts pipeline, awaiting ruling):**
 8–13. P0 slice: catalog/v4/typescript exporter (promote renderer), goldens,
-   api-stability update, package-surface registration, coverage floor,
-   FEATURES/CHANGELOG rows
+api-stability update, package-surface registration, coverage floor,
+FEATURES/CHANGELOG rows
 14. ADR-0168 draft with the P0
 15. exportName collision audit across fleet message names
 16. Deprecation → generated JSDoc @deprecated mapping
@@ -170,23 +171,23 @@ GopherJS correction (prior session's report, amended this session).
 **L4 design tail (§10/§10.5, all gated):**
 21. Client store spike: SQLite-WASM + WAL-on-OPFS in a SharedWorker
 22. Client-safe decider seam enforcement (declare resource deps; cqrs-lint
-    candidate rule)
+candidate rule)
 23. Speculative-flag row semantics in client projections (DB2 schema sketch)
 24. Rebase semantics doc: interactive rebase of intents; Rejection-as-conflict UX
 25. Decider-logic version in the command envelope (skew control)
 26. Dual-implementation contract-test pattern for shared decide/fold logic
-    (scenario DSL both sides)
+(scenario DSL both sides)
 27. TS fold/decide codegen feasibility note (extends 11-21 pipeline)
 28. TinyGo fold feasibility numbers (still parked, still gated)
 29. IndexedDB-vs-OPFS evidence row for the report (LiveStore/Evolu verified;
-    add PowerSync/SQLite-WASM specifics when network returns)
+add PowerSync/SQLite-WASM specifics when network returns)
 
 **Report hygiene (from this session's defects):**
 30. Sweep both HTML reports for any remaining paraphrase-✅ rows (GopherJS
-    class); quote-or-relabel each
+class); quote-or-relabel each
 31. Add the three misquote instances to verify-external-claims' incident list
 32. HTML report pre-ship checklist as a script (placeholder grep + anchors +
-    parse + symbol rg — the checks I ran by hand)
+parse + symbol rg — the checks I ran by hand)
 33. Decision-sheet next-free-number helper (D34–D41 lesson)
 34. Add "route-map before spawn" to the subagent playbook notes
 35. Screenshot-verify the three reports (never rendered-checked)
@@ -199,24 +200,24 @@ GopherJS correction (prior session's report, amended this session).
 
 **Small sticks:**
 40. README of docs/competition/ conventions (once it exists)
-   — resolved-by-design 2026-11-23: the index's "Method & verification"
-   section carries the conventions; no separate README file needed
+— resolved-by-design 2026-11-23: the index's "Method & verification"
+section carries the conventions; no separate README file needed
 41. LiveStore #253/#254 watch trigger → TODO_LIST row so convergence is a
-   decision, not amnesia
-   — done 2026-11-23: rowed in TODO_LIST "Harvest — 2026-11-23 competition
-   sweep executed" (together with §f.42/43 and the blocked render-screenshot
-   item)
+decision, not amnesia
+— done 2026-11-23: rowed in TODO_LIST "Harvest — 2026-11-23 competition
+sweep executed" (together with §f.42/43 and the blocked render-screenshot
+item)
 42. Re-measure DataStar client size at v1.0.5 (sibling measured v1.0.4)
 43. Check whether catalog-export cmd pattern can consume system.DomainConfig
-    directly (declare-once bridge, currently asserted not proven)
+directly (declare-once bridge, currently asserted not proven)
 44. Wire "command-queue" shape into the existing systemscenario harness docs
-    (when L4 opens, its tests already have a home)
+(when L4 opens, its tests already have a home)
 45. Vault the "facts system" (#254) design when LiveStore publishes it
 46. Monitor Go blog for official Go→TS tooling (standing trigger from 11-21)
 47. AsyncAPI-as-interchange note for third-party generator consumers
 48. Confirm ServeSSE JSON batch overhead number for the perf budget wire row
 49. Add ISP-flakiness note to gotchas-tooling (subagent spawns + fetch agents
-    fail misleadingly during outages; diagnose route map, not code)
+fail misleadingly during outages; diagnose route map, not code)
 50. D40/D41 disposition rows closed either way so the sheet stays truth
 
 ## g) Questions (cannot figure out myself)
@@ -226,7 +227,7 @@ GopherJS correction (prior session's report, amended this session).
    model demand), or fall back to glm-5.3-flash (zai bucket proven alive)?
    And if the flash fallback is needed at all, is that acceptable to you?
 2. **§10.3 scope check**: I read "as long as they do not access other
-   protected server resources" as *decider-scoped* — a decider that reads
+   protected server resources" as _decider-scoped_ — a decider that reads
    only its own stream is client-portable; cross-stream/PII/external reads
    make it server-only. Is that the intended line, or did you mean something
    narrower (e.g., only auth-gated queries)?
@@ -237,6 +238,6 @@ GopherJS correction (prior session's report, amended this session).
 
 ---
 
-*Written 2026-11-23 02:39. (f) items are D40/D41-gated or ISP-blocked as
+_Written 2026-11-23 02:39. (f) items are D40/D41-gated or ISP-blocked as
 marked; D40/D41 already sit in the decision sheet so nothing is entombed.
-**Now waiting for instructions.***
+**Now waiting for instructions.**_

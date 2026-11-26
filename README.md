@@ -288,17 +288,17 @@ The layers under the composition root are independently importable — some v4 s
 
 ## Examples
 
-| Example                                                   | Shows                                                                                           |
-| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [`getting-started`](example/getting-started/)             | single-file `system.New` tour; a test proves the one-line engine swap                           |
-| [`taskmanager`](example/taskmanager/)                     | flagship HTTP service: ES, projections, middleware, signing, SSE, snapshots, OTel               |
-| [`metaengine-quickstart`](example/metaengine-quickstart/) | deployment-time story: folds + queries, engine picks from a `cqrs.yaml`, map/graph/vector demos |
-| [`graph-native`](example/graph-native/)                   | follow-network graph reads, deletion-as-domain-event, BDD-verified                              |
-| [`mesh-demo`](example/mesh-demo/)                         | two bounded contexts wired only through replicated event contracts (data mesh)                  |
-| [`goal-shaped-app`](example/goal-shaped-app/)             | the library's north star, runnable: declare commands/events/queries, operators place the data   |
-| [`readme-quickstart`](example/readme-quickstart/)         | minimal command + decider without the system layer                                              |
-| [`scheduler-engine-status`](example/scheduler-engine-status/) | durable timers on the metaengine DueClaimer path (the v5-forward demo)                     |
-| [`scheduler-otel-status`](example/scheduler-otel-status/) | durable deadline timers + OTel/Prometheus claim observability (deprecated sqlstore path)        |
+| Example                                                       | Shows                                                                                           |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [`getting-started`](example/getting-started/)                 | single-file `system.New` tour; a test proves the one-line engine swap                           |
+| [`taskmanager`](example/taskmanager/)                         | flagship HTTP service: ES, projections, middleware, signing, SSE, snapshots, OTel               |
+| [`metaengine-quickstart`](example/metaengine-quickstart/)     | deployment-time story: folds + queries, engine picks from a `cqrs.yaml`, map/graph/vector demos |
+| [`graph-native`](example/graph-native/)                       | follow-network graph reads, deletion-as-domain-event, BDD-verified                              |
+| [`mesh-demo`](example/mesh-demo/)                             | two bounded contexts wired only through replicated event contracts (data mesh)                  |
+| [`goal-shaped-app`](example/goal-shaped-app/)                 | the library's north star, runnable: declare commands/events/queries, operators place the data   |
+| [`readme-quickstart`](example/readme-quickstart/)             | minimal command + decider without the system layer                                              |
+| [`scheduler-engine-status`](example/scheduler-engine-status/) | durable timers on the metaengine DueClaimer path (the v5-forward demo)                          |
+| [`scheduler-otel-status`](example/scheduler-otel-status/)     | durable deadline timers + OTel/Prometheus claim observability (deprecated sqlstore path)        |
 
 ## Key modules
 

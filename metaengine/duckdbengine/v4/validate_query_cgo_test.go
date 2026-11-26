@@ -113,7 +113,7 @@ func probeQuerySurfaces(
 			sql, _ := eng.(metaengine.ExplainableScan).
 				ExplainScanQuery(ctx, "c", metaengine.ExplainOptions{Filters: filters})
 
-			return rejectedSQL(sql)
+			return strings.HasPrefix(sql, "/* rejected:")
 		}()},
 		{name: "ExplainAggregateQuery", col: true, grp: true, rejected: func() bool {
 			opts := metaengine.ExplainAggregateOptions{
@@ -121,7 +121,7 @@ func probeQuerySurfaces(
 			}
 			sql, _ := eng.(metaengine.ExplainableAggregate).ExplainAggregateQuery(ctx, "c", opts)
 
-			return rejectedSQL(sql)
+			return strings.HasPrefix(sql, "/* rejected:")
 		}()},
 	}
 

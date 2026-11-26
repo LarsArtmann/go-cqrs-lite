@@ -79,7 +79,7 @@ func TestSiblingModulePinsResolve(t *testing.T) {
 				}
 
 				switch {
-				case !tagExists(allTags, tagDir, version) && isPseudoVersion(version):
+				case !slices.Contains(allTags, tagDir+"/"+version) && isPseudoVersion(version):
 					broken = append(
 						broken,
 						fmt.Sprintf(
@@ -89,7 +89,7 @@ func TestSiblingModulePinsResolve(t *testing.T) {
 							version,
 						),
 					)
-				case !tagExists(allTags, tagDir, version):
+				case !slices.Contains(allTags, tagDir+"/"+version):
 					broken = append(broken, fmt.Sprintf("%s requires %s %s — no such tag exists (%s/%s)",
 						mod, depDir, version, tagDir, version))
 				case compareVersions(version, latest) < 0:

@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"slices"
 	"runtime/pprof"
+	"slices"
 )
 
 // startProfiling wires the --cpuprofile/--memprofile flags onto a command:

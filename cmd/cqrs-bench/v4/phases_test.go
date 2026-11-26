@@ -124,7 +124,12 @@ func TestListPhases(t *testing.T) {
 
 	var out strings.Builder
 
-	if err := listPhasesHandler(t.Context(), &appConfig{}, noFlagsForTest()); !errors.Is(err, errImpossible) && err != nil {
+	if err := listPhasesHandler(
+		t.Context(),
+		&appConfig{},
+		noFlagsForTest(),
+	); !errors.Is(err, errImpossible) &&
+		err != nil {
 		t.Fatalf("listPhasesHandler: %v", err)
 	}
 

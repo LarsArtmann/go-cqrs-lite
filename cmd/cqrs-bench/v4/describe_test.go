@@ -85,10 +85,10 @@ func TestCLI_DescribeMatchesTheFlagStructs(t *testing.T) {
 	contract := describe(t)
 
 	want := map[string][]string{
-		"run":        flagNames(reflect.TypeFor[runFlags]()),
-		"compare":    flagNames(reflect.TypeFor[compareFlags]()),
-		"sweep":      flagNames(reflect.TypeFor[sweepFlags]()),
-		"layout":     flagNames(reflect.TypeFor[layoutFlags]()),
+		"run":         flagNames(reflect.TypeFor[runFlags]()),
+		"compare":     flagNames(reflect.TypeFor[compareFlags]()),
+		"sweep":       flagNames(reflect.TypeFor[sweepFlags]()),
+		"layout":      flagNames(reflect.TypeFor[layoutFlags]()),
 		"list-phases": nil,
 	}
 
@@ -167,7 +167,16 @@ func TestBackendHelpListsEveryBackend(t *testing.T) {
 func TestRootConfigKeepsCmdguardConfigFileFlags(t *testing.T) {
 	t.Parallel()
 
-	if got := flagNames(reflect.TypeFor[appConfig]()); !slices.Equal(got, flagNames(reflect.TypeFor[cmdguard.Config]())) {
-		t.Errorf("appConfig flags = %q, want exactly cmdguard.Config's %q", got, flagNames(reflect.TypeFor[cmdguard.Config]()))
+	if got := flagNames(
+		reflect.TypeFor[appConfig](),
+	); !slices.Equal(
+		got,
+		flagNames(reflect.TypeFor[cmdguard.Config]()),
+	) {
+		t.Errorf(
+			"appConfig flags = %q, want exactly cmdguard.Config's %q",
+			got,
+			flagNames(reflect.TypeFor[cmdguard.Config]()),
+		)
 	}
 }

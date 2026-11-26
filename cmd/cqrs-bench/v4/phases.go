@@ -111,7 +111,8 @@ func phaseDocs() []phaseDoc {
 			skip:    func(config *benchkit.Config) { config.SkipQuery = true },
 		},
 		{
-			name: "snapshot", label: "snapshot phase",
+			name:    "snapshot",
+			label:   "snapshot phase",
 			summary: "Snapshot and cache hit-rate phase with cold-replay comparison",
 			metrics: "snapshot_cold_p50_ns snapshot_cold_p99_ns snapshot_load_p99_ns cache_miss_p99_ns cache_hit_p99_ns",
 			flags:   []string{"--replay", "--skip-snapshot"},

@@ -103,7 +103,7 @@ func (b benchFlags) config(profile benchkit.Profile, enc codec.Codec, sizes []in
 	config := benchkit.Config{
 		Profile:                 profile,
 		PayloadSize:             b.PayloadSize,
-		PayloadSizes:           sizes,
+		PayloadSizes:            sizes,
 		Codec:                   enc,
 		Repeat:                  b.Repeat,
 		SkipReads:               b.SkipReads,

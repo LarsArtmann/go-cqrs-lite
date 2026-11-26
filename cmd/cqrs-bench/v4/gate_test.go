@@ -34,18 +34,19 @@ func TestStrictGate(t *testing.T) {
 			mutate: func(result *benchkit.Result) { result.SkippedPhases = inherentSkippedPhases("system-memory") },
 		},
 		{
-			name: "a phase the backend can run was skipped", backend: "sqlite",
-			mutate: func(result *benchkit.Result) { result.SkippedPhases = append(result.SkippedPhases, "query phase") },
+			name:    "a phase the backend can run was skipped",
+			backend: "sqlite",
+			mutate:  func(result *benchkit.Result) { result.SkippedPhases = append(result.SkippedPhases, "query phase") },
 			teaches: []string{"query phase"},
 		},
 		{
 			name: "the capability baseline is stale", backend: "sqlite",
-			mutate: func(result *benchkit.Result) { result.SkippedPhases = nil },
+			mutate:  func(result *benchkit.Result) { result.SkippedPhases = nil },
 			teaches: []string{"baseline", "metaengine phase"},
 		},
 		{
 			name: "integrity errors fail", backend: "sqlite",
-			mutate: func(result *benchkit.Result) { result.IntegrityErrors = 2 },
+			mutate:  func(result *benchkit.Result) { result.IntegrityErrors = 2 },
 			teaches: []string{"2 integrity error"},
 		},
 		{

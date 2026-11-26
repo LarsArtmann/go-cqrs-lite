@@ -74,7 +74,7 @@ func TestMySQLEngine_MapUpdateMissingKeySerializes(t *testing.T) {
 			t.Fatalf("MapGet after updates: ok=%v err=%v", ok, err)
 		}
 
-		if n := got.(map[string]any)["n"]; n != float64(2*perGoroutine) { //nolint:forcetypeassert // written above
+		if n := got.(map[string]any)["n"]; n != float64(2*perGoroutine) {
 			t.Errorf("key %s: counter = %v, want %d (lost update on a missing key)", key, n, 2*perGoroutine)
 		}
 	}

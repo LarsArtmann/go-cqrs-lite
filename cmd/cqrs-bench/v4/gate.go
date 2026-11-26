@@ -66,7 +66,8 @@ func coverageProblems(skipped, inherent []string) []string {
 
 	if stale := slices.DeleteFunc(slices.Clone(inherent), skippedToo); len(stale) > 0 {
 		problems = append(problems, fmt.Sprintf(
-			"phase(s) run that the capability baseline lists as never available: %v; update inherentSkippedPhases", stale,
+			"phase(s) run that the capability baseline lists as never available: %v; update inherentSkippedPhases",
+			stale,
 		))
 	}
 

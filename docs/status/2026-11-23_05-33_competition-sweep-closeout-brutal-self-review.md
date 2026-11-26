@@ -185,6 +185,6 @@ session) and `2026-11-23_05-30_competition-sweep-executed-report-repairs-session
 
 ---
 
-*Written 2026-11-23 05:33, immediately after the execution closeout. Waiting
+_Written 2026-11-23 05:33, immediately after the execution closeout. Waiting
 for instructions. Auto-commit daemon owns the tree; the SKILLS repo edit is
-daemon-committed (verified).*
+daemon-committed (verified)._

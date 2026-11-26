@@ -1,7 +1,7 @@
 package mysqlengine_test
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -47,7 +47,7 @@ func TestMySQL_EmptyFilterInMatchesNoRows(t *testing.T) {
 
 	for _, col := range collections {
 		for i := range 3 {
-			if err := mb.MapSet(ctx, col, fmt.Sprint(i), emptyInRow{Status: "open", N: float64(i)}); err != nil {
+			if err := mb.MapSet(ctx, col, strconv.Itoa(i), emptyInRow{Status: "open", N: float64(i)}); err != nil {
 				t.Fatalf("MapSet: %v", err)
 			}
 		}

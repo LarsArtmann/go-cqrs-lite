@@ -40,6 +40,7 @@ registered in all 6 gates). Rode along: repo-wide go.sum tidy repair (60
 modules) + three DEP_BUDGET raises with rationale.
 
 **W4 tail (T15–T25) — partial, mostly uncommitted:**
+
 - T15 catalog D2 → go-output: **REFUSED by the plan's own gate** (see b).
 - T16 retry consolidation: middleware loop → `retry.Do` — DONE, tests green
   (sentinels preserved by wrapping; jitter + deadline-vs-cancel now arrive);
@@ -78,8 +79,8 @@ modules) + three DEP_BUDGET raises with rationale.
   use; compat-first chosen, owner ratification requested (question 2).
 - **W4 work is uncommitted** (~25 files staged/dirty): retry.go, the
   errorfamilytest sweep, signing test, cqrs-gen artifacts, check-libreports
-  + flake app, .gitignore (stray-binary pattern), status README row. All
-  listed suites are green; the wave lacks its boundary commit + log section.
+  - flake app, .gitignore (stray-binary pattern), status README row. All
+    listed suites are green; the wave lacks its boundary commit + log section.
 - **T15 refusal not yet written into the execution log** (decision made in
   session, recorded here): `escape.SlugifyID` lacks ToLower and adds
   bracket/asterisk handling vs `sanitizeID`, and go-output/d2's renderer

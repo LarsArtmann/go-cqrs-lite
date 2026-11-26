@@ -65,7 +65,6 @@ var _ = event.New
 // before the flag was consulted, so the gate could never fail.
 // Not parallel: captureStdout swaps the process-global os.Stdout.
 func TestDoctorJSON_FailOnStaleSuppressionsExitsNonZero(t *testing.T) {
-
 	dir := doctorStaleModule(t)
 	cli := newTestCLI(t)
 
@@ -89,7 +88,6 @@ func TestDoctorJSON_FailOnStaleSuppressionsExitsNonZero(t *testing.T) {
 // TestDoctorJSON_StaleWithoutFlagExitsZero is the control: the same project
 // without --fail-on-stale-suppressions must still audit (implied) and succeed.
 func TestDoctorJSON_StaleWithoutFlagExitsZero(t *testing.T) {
-
 	dir := doctorStaleModule(t)
 	cli := newTestCLI(t)
 

@@ -19,20 +19,40 @@ type deprecatedAPIEntry struct {
 }
 
 var deprecatedAPIEntries = []deprecatedAPIEntry{ //nolint:gochecknoglobals // static lookup table
-	{pathFragment: "go-cqrs-lite/command", symbol: "ParseType", replacement: "record.ParseType(s, command.ErrEmptyCommandType)"},
+	{
+		pathFragment: "go-cqrs-lite/command",
+		symbol:       "ParseType",
+		replacement:  "record.ParseType(s, command.ErrEmptyCommandType)",
+	},
 	{pathFragment: "go-cqrs-lite/command", symbol: "ParseAggregateType", replacement: "command.ParseStreamType"},
 	{pathFragment: "go-cqrs-lite/command", symbol: "NewAggregateRef", replacement: "command.NewStreamRef"},
 	{pathFragment: "go-cqrs-lite/command", symbol: "AggregateType", replacement: "command.StreamType"},
 	{pathFragment: "go-cqrs-lite/command", symbol: "AggregateRef", replacement: "command.StreamRef"},
-	{pathFragment: "go-cqrs-lite/event", symbol: "ParseType", replacement: "record.ParseType(s, event.ErrEmptyEventType)"},
+	{
+		pathFragment: "go-cqrs-lite/event",
+		symbol:       "ParseType",
+		replacement:  "record.ParseType(s, event.ErrEmptyEventType)",
+	},
 	{pathFragment: "go-cqrs-lite/event", symbol: "ParseAggregateType", replacement: "id.ParseStreamType"},
 	{pathFragment: "go-cqrs-lite/event", symbol: "NewAggregateRef", replacement: "id.NewStreamRef"},
 	{pathFragment: "go-cqrs-lite/event", symbol: "AggregateType", replacement: "event.StreamType"},
 	{pathFragment: "go-cqrs-lite/event", symbol: "AggregateID", replacement: "event.StreamID"},
 	{pathFragment: "go-cqrs-lite/event", symbol: "AggregateRef", replacement: "event.StreamRef"},
-	{pathFragment: "go-cqrs-lite/event", symbol: "DetectTombstone", replacement: "domain deletion/restore events (ADR-0114)"},
-	{pathFragment: "go-cqrs-lite/query", symbol: "ParseType", replacement: "record.ParseType(s, query.ErrEmptyQueryType)"},
-	{pathFragment: "go-cqrs-lite/listing", symbol: "NewInMemoryAggregateReader", replacement: "listing.NewInMemoryStreamReader"},
+	{
+		pathFragment: "go-cqrs-lite/event",
+		symbol:       "DetectTombstone",
+		replacement:  "domain deletion/restore events (ADR-0114)",
+	},
+	{
+		pathFragment: "go-cqrs-lite/query",
+		symbol:       "ParseType",
+		replacement:  "record.ParseType(s, query.ErrEmptyQueryType)",
+	},
+	{
+		pathFragment: "go-cqrs-lite/listing",
+		symbol:       "NewInMemoryAggregateReader",
+		replacement:  "listing.NewInMemoryStreamReader",
+	},
 }
 
 // matchDeprecatedAPI reports the deprecated-API entry matching a call of
