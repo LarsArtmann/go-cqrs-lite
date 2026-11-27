@@ -46,7 +46,11 @@ func TestCommandCircuitBreaker_HalfOpenAfterTimeout(t *testing.T) {
 
 	config := testCBConfig(2, 1)
 
-	failingHandler := CommandCircuitBreaker(config)(failingCommandHandler("fail"))
+	// One middleware, hence one breaker: opening it below must affect the
+	// success call. CommandCircuitBreaker builds a fresh breaker per call.
+	middlewareMW := CommandCircuitBreaker(config)
+
+	failingHandler := middlewareMW(failingCommandHandler("fail"))
 
 	for range 2 {
 		_ = failingHandler(t.Context(), &testCommand{})
@@ -56,15 +60,11 @@ func TestCommandCircuitBreaker_HalfOpenAfterTimeout(t *testing.T) {
 	time.Sleep(60 * time.Millisecond)
 
 	var called bool
-	successHandler := CommandCircuitBreaker(
-		config,
-	)(
-		func(_ context.Context, _ command.Command) error {
-			called = true
+	successHandler := middlewareMW(func(_ context.Context, _ command.Command) error {
+		called = true
 
-			return nil
-		},
-	)
+		return nil
+	})
 
 	if err := successHandler(t.Context(), &testCommand{}); err != nil {
 		t.Fatalf("expected success after half-open, got %v", err)

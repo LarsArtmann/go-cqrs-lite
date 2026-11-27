@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"database/sql"
+	"log/slog"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -38,6 +39,9 @@ var ErrUnexpectedTimeType error = errorfamily.NewCorruption(
 type SQLDeadLetterStore struct {
 	db      *sql.DB
 	dialect string
+	// logger reports failed inserts; Handle has no error return, so the log
+	// is the only trace of a dead-letter entry that was never stored.
+	logger *slog.Logger
 }
 
 const tableDeadLetters = "dead_letters"
@@ -49,7 +53,7 @@ const deadLetterInsertColumns = 8
 // NewSQLDeadLetterStore creates a SQL-backed dead-letter store and auto-creates
 // the dead_letters table. The dialect must be "sqlite" or "postgres".
 func NewSQLDeadLetterStore(db *sql.DB, dialect string) (*SQLDeadLetterStore, error) {
-	s := &SQLDeadLetterStore{db: db, dialect: dialect}
+	s := &SQLDeadLetterStore{db: db, dialect: dialect, logger: slog.Default()}
 
 	if err := s.migrate(); err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "deadletter.migrate",
@@ -73,6 +77,9 @@ func (s *SQLDeadLetterStore) migrate() error {
 }
 
 // Handle stores a dead-letter entry. Implements DeadLetterHandler.
+//
+// Handle cannot return an error, so a failed insert is only logged: the
+// entry is then not persisted and cannot be recovered from this store.
 func (s *SQLDeadLetterStore) Handle(ctx context.Context, entry DeadLetterEntry) {
 	aggID := ""
 
@@ -102,7 +109,7 @@ func (s *SQLDeadLetterStore) Handle(ctx context.Context, entry DeadLetterEntry) 
 			deadLetterInsertColumns,
 		) + ")"
 
-	_, _ = s.db.ExecContext(
+	if _, err := s.db.ExecContext(
 		ctx,
 		query,
 		entry.Kind,
@@ -113,7 +120,11 @@ func (s *SQLDeadLetterStore) Handle(ctx context.Context, entry DeadLetterEntry) 
 		family,
 		entry.Attempts,
 		s.formatTime(failedAt),
-	)
+	); err != nil {
+		s.logger.ErrorContext(ctx, "middleware: dead-letter insert failed; entry not stored",
+			"error", err, "kind", entry.Kind, "type", entry.Type, "aggregate_id", aggID,
+			"error_code", code, "attempts", entry.Attempts)
+	}
 }
 
 // Entries returns all dead-lettered messages, ordered by insertion time.

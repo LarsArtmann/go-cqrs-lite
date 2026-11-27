@@ -20,6 +20,14 @@ import (
 // idempotency.ErrDuplicate without calling the next handler.
 //
 // An empty key ("") skips dedup for that message (pass-through).
+//
+// The key is recorded BEFORE the next handler runs and is never removed, so
+// the middleware gives at-most-once semantics: if the next handler fails,
+// panics or times out, the key stays recorded for the TTL and every retry or
+// redelivery of the same message (including through an outer retry
+// middleware) is rejected as a duplicate. To retry a failed handler, apply
+// NewIdempotency OUTSIDE NewRetry, so one recorded key covers the whole
+// retry loop; a retry middleware outside only sees the duplicate rejection.
 func NewIdempotency[M any](
 	adapter MessageAdapter[M],
 	store idempotency.Store,

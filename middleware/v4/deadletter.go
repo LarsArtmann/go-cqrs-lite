@@ -9,8 +9,10 @@ import (
 )
 
 // DeadLetterEntry captures a message that exhausted all retry attempts.
-// It contains enough context to inspect, replay, or discard the failed
-// message without access to the original handler.
+// It contains enough context to inspect or discard the failed message
+// without access to the original handler: its type, stream, failure and
+// attempt count. It carries neither the message ID nor the payload, so a
+// stored entry cannot be replayed or matched back to its source message.
 //
 // This is the DISPATCH-side dead-letter: a command/event/query that failed
 // in the middleware retry pipeline. For the PROJECTION-side dead-letter
@@ -47,7 +49,7 @@ type DeadLetterEntry struct {
 }
 
 // DeadLetterHandler is called when a message exhausts all retry attempts.
-// Use it to quarantine poison messages for inspection, logging, or replay.
+// Use it to record poison messages for inspection or logging.
 //
 // The handler must not panic — if it fails, the message is already lost
 // (retries exhausted). Keep the handler fast and side-effect-minimal.
