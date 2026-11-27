@@ -51,8 +51,10 @@ func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
 
 // MultiVerifyMiddleware returns event.Middleware that verifies the signature
 // of a specific actor from the event's multi-sig collection before handling.
-// Events without a multi-sig or without that actor's signature pass through
-// (to support mixed streams). Use RequireMultiSigMiddleware to enforce presence.
+// Events without any multi-sig pass through (to support mixed streams). An
+// event that carries a multi-sig collection but no entry for this actor is
+// rejected, like a tampered signature. Use RequireMultiSigMiddleware to
+// enforce that every actor of a verifier map has signed.
 func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 	if signer == nil {
 		return event.RejectingHandlerMiddleware(
@@ -100,7 +102,9 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 // MultiVerifyMiddlewareFor returns event.Middleware that verifies a specific
 // actor's signature without requiring the caller to construct a *MultiSigner.
 // This is a convenience wrapper for the common case where you already have
-// a Verifier and just want to check one actor's signature.
+// a Verifier and just want to check one actor's signature. It behaves like
+// [MultiVerifyMiddleware]: no multi-sig passes through, a collection without
+// this actor is rejected.
 func MultiVerifyMiddlewareFor(actor Actor, verifier signing.Verifier) event.Middleware {
 	if verifier == nil {
 		return event.RejectingHandlerMiddleware(

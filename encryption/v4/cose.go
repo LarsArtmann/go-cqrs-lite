@@ -243,7 +243,7 @@ func DecryptCOSE0(coseBytes []byte, dec COSEDecrypter, opts ...COSEEncryptOption
 		)
 	}
 
-	nonce, err := extractCOSEIV(msg.Unprotected)
+	nonce, err := extractCOSEIV(msg.Unprotected, dec.COSEAlgorithm())
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +275,9 @@ func DecryptCOSE0(coseBytes []byte, dec COSEDecrypter, opts ...COSEEncryptOption
 }
 
 // extractCOSEIV extracts the initialization vector from the unprotected header.
-func extractCOSEIV(unprotected map[int64]any) ([]byte, error) {
+// The IV is unauthenticated, so its length is checked before it reaches the
+// AEAD: Open panics instead of failing on a nonce of the wrong size.
+func extractCOSEIV(unprotected map[int64]any, alg int64) ([]byte, error) {
 	if unprotected == nil {
 		return nil, errorfamily.NewRejection(
 			"encryption.cose_missing_iv",
@@ -299,5 +301,19 @@ func extractCOSEIV(unprotected map[int64]any) ([]byte, error) {
 		)
 	}
 
+	size, known := coseNonceSizes[alg]
+	if !known || len(ivBytes) != size {
+		return nil, errorfamily.NewRejection(
+			"encryption.cose_invalid_iv",
+			"COSE IV has wrong size",
+		)
+	}
+
 	return ivBytes, nil
+}
+
+// coseNonceSizes maps COSE algorithm identifiers to their nonce size in bytes.
+var coseNonceSizes = map[int64]int{ //nolint:gochecknoglobals // fixed by the specifications
+	codec.COSEAlgAES256GCM:        aesGCMNonceSize,
+	codec.COSEAlgChaCha20Poly1305: xchacha20NonceSize,
 }

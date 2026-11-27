@@ -34,7 +34,15 @@ func wrapTransformErr(evt event.Event, err error) error {
 // map[string]any — without normalization a nested-object Transform works on
 // JSON events and silently no-ops on CBOR events. Maps with non-string keys
 // are outside the map[string]any field-map contract and are left as decoded.
+//
+// JSON numbers decode without float64 rounding: integers are float64 while
+// exactly representable, and int64/uint64 beyond, so a field op never corrupts
+// a 64-bit identifier in a field it does not touch.
 func decodeFieldMap(evt event.Event) (map[string]any, error) {
+	if evt.Encoding() == codec.EncodingJSON {
+		return decodeJSONFieldMap(evt)
+	}
+
 	codecFor, err := codec.ForEncoding(evt.Encoding())
 	if err != nil {
 		return nil, wrapDecodeErr(evt, err)

@@ -1,6 +1,8 @@
 package encryption
 
 import (
+	"errors"
+
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -47,11 +49,21 @@ func encryptEvent(evt event.Event, enc Encrypter, keyID KeyID) (event.Event, err
 }
 
 // decryptEvent decrypts a single event. Returns the event unchanged if it
-// has no ciphertext metadata. Shared by both DecryptMiddleware and EncryptedStore.
+// has no ciphertext metadata. A damaged marker is an error: passing the event
+// on would hand still-encrypted bytes to the caller as if they were plaintext.
+// Shared by both DecryptMiddleware and EncryptedStore.
 func decryptEvent(evt event.Event, dec Decrypter) (event.Event, error) {
 	ct, err := ExtractCiphertext(evt)
 	if err != nil {
-		return evt, nil //nolint:nilerr // empty payload passthrough is intentional
+		if errors.Is(err, ErrNilCiphertext) {
+			return evt, nil //nolint:nilerr // empty payload passthrough is intentional
+		}
+
+		return nil, errorfamily.WrapCorruption(
+			err,
+			"encryption.decrypt_event_marker",
+			"read ciphertext marker of event "+string(evt.Type()),
+		)
 	}
 
 	plaintext, err := dec.Decrypt(ct)
