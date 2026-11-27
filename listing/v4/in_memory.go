@@ -13,8 +13,13 @@ import (
 )
 
 // InMemoryStreamReader implements StreamReader using a Journal.
-// Caches the stream index and only rebuilds when the event count changes.
-// Suitable for testing, development, and single-process deployments.
+//
+// The stream index is built once from Journal.ReadAll on the first List and
+// then cached. The cache never expires or refreshes by itself: new events,
+// new streams and tombstone changes stay invisible until [InMemoryStreamReader.InvalidateCache]
+// is called (or [CacheInvalidationMiddleware] runs on the bus the events are
+// published through). Suitable for testing, development, and single-process
+// deployments.
 type InMemoryStreamReader struct {
 	journal    event.Journal
 	classifier StatusClassifier
