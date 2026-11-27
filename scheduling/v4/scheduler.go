@@ -26,11 +26,14 @@ import (
 // # Retry semantics
 //
 // dispatchWithRetry retries only retriable failures: an error classified as
-// Rejection or Conflict (errorfamily) is a permanent decision and surfaces
-// immediately instead of burning MaxRetries attempts every poll cycle
-// forever. Transient/Infrastructure errors keep the equal-jitter exponential
-// backoff. Wrap the dispatch func to add classification if a handler returns
-// unclassified errors that should not be retried.
+// Rejection or Conflict (errorfamily) is a permanent decision and is not
+// retried within a poll cycle, unlike Transient/Infrastructure errors, which
+// keep the equal-jitter exponential backoff. It does not end the timer's
+// life: a timer whose dispatch failed, permanently or not, stays due and is
+// dispatched again on every poll until a dispatch succeeds (then MarkFired)
+// or the timer is removed from the store, logging an error each time. Wrap
+// the dispatch func to add classification if a handler returns unclassified
+// errors that should not be retried.
 //
 // # MarkFired race
 //
