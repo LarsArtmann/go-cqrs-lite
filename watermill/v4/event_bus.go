@@ -17,9 +17,12 @@ import (
 // It replaces memory.MemoryBus for single-process deployments and serves as
 // the canonical event bus for new code (ADR-0028).
 //
-// GoChannel provides persistent in-process pub/sub with proper message routing,
-// Ack/Nack lifecycle, and buffer management. For multi-process deployments,
-// inject a Kafka/NATS publisher+subscriber via WithBackend.
+// The default GoChannel backend is NOT persistent: only events published
+// while a handler is subscribed are delivered, in order, with an Ack/Nack
+// lifecycle. An event published before the first Subscribe (or after Close) is
+// dropped silently; use CatchUpSubscriber or a journal replay to feed late
+// subscribers. For multi-process deployments, inject a Kafka/NATS
+// publisher+subscriber via WithBackend.
 type EventBus struct {
 	subscriptionState
 
@@ -64,8 +67,9 @@ func (b *EventBus) MessageSubscriber() message.Subscriber { return b.subscriber 
 const DefaultEventBusTopic = "cqrs.events"
 
 // NewEventBus creates a Watermill-backed event.Bus. Without WithBackend,
-// uses a GoChannel for persistent in-process pub/sub suitable for
-// single-process deployments and testing.
+// uses a non-persistent GoChannel for in-process pub/sub suitable for
+// single-process deployments and testing: events published before the first
+// Subscribe are not delivered (see EventBus).
 func NewEventBus(opts ...EventBusOption) *EventBus {
 	b := &EventBus{
 		logger:       slog.Default(),
@@ -141,14 +145,14 @@ func (b *EventBus) Publish(ctx context.Context, events ...event.Event) error {
 
 // Subscribe registers a handler for a specific event type.
 func (b *EventBus) Subscribe(eventType event.Type, handler event.Handler) error {
-	return registerTypedHandler(&b.mu, b.closed, b.typeHandlers, eventType, handler,
+	return registerTypedHandler(&b.mu, &b.closed, b.typeHandlers, eventType, handler,
 		"watermill.event_bus_subscribe", "event",
 		b.rebuildHandlerChain, b.ensureSubscriptionLocked)
 }
 
 // SubscribeAll registers a catch-all handler that receives every event.
 func (b *EventBus) SubscribeAll(handler event.Handler) error {
-	return registerAllHandler(&b.mu, b.closed, &b.allHandlers, handler,
+	return registerAllHandler(&b.mu, &b.closed, &b.allHandlers, handler,
 		"watermill.event_bus_subscribe_all", "event",
 		b.rebuildHandlerChain, b.ensureSubscriptionLocked)
 }

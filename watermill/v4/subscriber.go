@@ -2,8 +2,8 @@ package watermill
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"sync"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -13,19 +13,17 @@ import (
 
 // SubscriberAdapter wraps a go-cqrs-lite event.Bus as a Watermill subscriber.
 type SubscriberAdapter struct {
-	bus        event.Bus
-	handlers   map[string]event.Handler
-	handlersMu sync.Mutex
-	outputCh   chan *message.Message
-	closeCh    chan struct{}
-	closeMu    sync.Once
+	bus event.Bus
+
+	outputGate[*message.Message]
+	outputCh chan *message.Message
+	closeCh  chan struct{}
 }
 
 // NewSubscriberAdapter creates a Watermill subscriber backed by a go-cqrs-lite event.Bus.
 func NewSubscriberAdapter(bus event.Bus) *SubscriberAdapter {
 	return &SubscriberAdapter{
 		bus:      bus,
-		handlers: make(map[string]event.Handler),
 		outputCh: make(chan *message.Message, 100),
 		closeCh:  make(chan struct{}),
 	}
@@ -37,22 +35,11 @@ func (a *SubscriberAdapter) Subscribe(
 	topic string,
 ) (<-chan *message.Message, error) {
 	handler := func(ctx context.Context, evt event.Event) error {
-		msg := eventToMessage(evt)
-
-		select {
-		case a.outputCh <- msg:
-			return nil
-		case <-a.closeCh:
-			return errorfamily.WrapInfrastructure(
-				event.ErrBusClosed,
-				"watermill.topic_closed",
-				fmt.Sprintf("topic %s", topic),
-			)
-		case <-ctx.Done():
-			return errorfamily.WrapInfrastructure(ctx.Err(),
-				"watermill.topic_cancelled",
-				fmt.Sprintf("topic %s", topic))
+		if err := a.offer(ctx, eventToMessage(evt), a.outputCh, a.closeCh); err != nil {
+			return wrapOfferError(err, topic)
 		}
+
+		return nil
 	}
 
 	//cqrs-lint:ignore(C027) library code or intentional pattern
@@ -61,17 +48,17 @@ func (a *SubscriberAdapter) Subscribe(
 		return nil, wrapSubscribeError(err, topic)
 	}
 
-	registerSubscriberHandler(&a.handlersMu, a.handlers, topic, handler)
-
 	return a.outputCh, nil
 }
 
-// Close closes the subscriber and unsubscribes all handlers.
+// Close stops delivering events: buffered messages can still be read, then the
+// output channel is closed.
+//
+// The event.Bus has no unsubscribe, so the handlers registered by Subscribe
+// stay on the bus and reject every later event with [event.ErrBusClosed]
+// (which the bus may log). If the bus implements Close, it is closed too.
 func (a *SubscriberAdapter) Close() error {
-	a.closeMu.Do(func() {
-		close(a.closeCh)
-		close(a.outputCh)
-	})
+	a.outputGate.close(a.closeCh, a.outputCh)
 
 	if closer, ok := a.bus.(interface{ Close() error }); ok {
 		return closer.Close()
@@ -81,3 +68,15 @@ func (a *SubscriberAdapter) Close() error {
 }
 
 var _ message.Subscriber = (*SubscriberAdapter)(nil)
+
+// wrapOfferError classifies a refused offer: a closed adapter and a cancelled
+// context both surface as Infrastructure errors carrying their cause.
+func wrapOfferError(err error, topic string) error {
+	if errors.Is(err, event.ErrBusClosed) {
+		return errorfamily.WrapInfrastructure(event.ErrBusClosed,
+			"watermill.topic_closed", fmt.Sprintf("topic %s", topic))
+	}
+
+	return errorfamily.WrapInfrastructure(err,
+		"watermill.topic_cancelled", fmt.Sprintf("topic %s", topic))
+}

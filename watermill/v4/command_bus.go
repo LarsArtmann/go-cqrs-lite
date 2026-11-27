@@ -132,14 +132,14 @@ func (b *CommandBus) Publish(ctx context.Context, cmds ...command.Command) error
 
 // Subscribe registers a handler for a specific command type.
 func (b *CommandBus) Subscribe(cmdType command.Type, handler command.Handler) error {
-	return registerTypedHandler(&b.mu, b.closed, b.typeHandlers, cmdType, handler,
+	return registerTypedHandler(&b.mu, &b.closed, b.typeHandlers, cmdType, handler,
 		"watermill.command_bus_subscribe", "command",
 		b.rebuildHandlerChain, b.ensureSubscriptionLocked)
 }
 
 // SubscribeAll registers a catch-all handler that receives every command.
 func (b *CommandBus) SubscribeAll(handler command.Handler) error {
-	return registerAllHandler(&b.mu, b.closed, &b.allHandlers, handler,
+	return registerAllHandler(&b.mu, &b.closed, &b.allHandlers, handler,
 		"watermill.command_bus_subscribe_all", "command",
 		b.rebuildHandlerChain, b.ensureSubscriptionLocked)
 }

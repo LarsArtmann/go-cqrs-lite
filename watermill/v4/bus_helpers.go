@@ -73,9 +73,13 @@ func errBusClosed(component, noun string) error {
 // EventBus. It locks the bus, checks the closed guard, appends the handler to
 // the type-keyed map, rebuilds the handler chain, and ensures the background
 // subscription is running.
+//
+// closed is passed by pointer so the guard is read under mu, like
+// dispatchCached: read by value it would race with Close's write and let a
+// Subscribe that lost to Close register a handler on a closed bus.
 func registerTypedHandler[K ~string, H any](
 	mu *sync.Mutex,
-	closed bool,
+	closed *bool,
 	handlers map[K][]H,
 	key K,
 	handler H,
@@ -86,7 +90,7 @@ func registerTypedHandler[K ~string, H any](
 	mu.Lock()
 	defer mu.Unlock()
 
-	if closed {
+	if *closed {
 		return errBusClosed(component, noun)
 	}
 
@@ -102,7 +106,7 @@ func registerTypedHandler[K ~string, H any](
 // the struct field.
 func registerAllHandler[H any](
 	mu *sync.Mutex,
-	closed bool,
+	closed *bool,
 	handlers *[]H,
 	handler H,
 	component, noun string,
@@ -112,7 +116,7 @@ func registerAllHandler[H any](
 	mu.Lock()
 	defer mu.Unlock()
 
-	if closed {
+	if *closed {
 		return errBusClosed(component, noun)
 	}
 
@@ -141,19 +145,6 @@ func withLockedModify(mu *sync.Mutex, modify func(), rebuild func()) {
 
 	modify()
 	rebuild()
-}
-
-// registerSubscriberHandler stores a topic→handler mapping under a mutex.
-// Shared between SubscriberAdapter and CommandSubscriberAdapter.
-func registerSubscriberHandler[H any](
-	mu *sync.Mutex,
-	handlers map[string]H,
-	topic string,
-	handler H,
-) {
-	mu.Lock()
-	handlers[topic] = handler
-	mu.Unlock()
 }
 
 // wrapSubscribeError wraps a failed Subscribe call with the shared

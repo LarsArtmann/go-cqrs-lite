@@ -2,14 +2,10 @@ package watermill
 
 import (
 	"context"
-	"fmt"
-	"sync"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // CommandSubscriberAdapter wraps a go-cqrs-lite command.Subscriber as a
@@ -17,11 +13,10 @@ import (
 // as Watermill messages on a single shared output channel.
 type CommandSubscriberAdapter struct {
 	subscriber command.Subscriber
-	handlers   map[string]command.Handler
-	handlersMu sync.Mutex
-	outputCh   chan *message.Message
-	closeCh    chan struct{}
-	closeOnce  sync.Once
+
+	outputGate[*message.Message]
+	outputCh chan *message.Message
+	closeCh  chan struct{}
 }
 
 // NewCommandSubscriberAdapter creates a Watermill subscriber backed by a
@@ -29,7 +24,6 @@ type CommandSubscriberAdapter struct {
 func NewCommandSubscriberAdapter(subscriber command.Subscriber) *CommandSubscriberAdapter {
 	return &CommandSubscriberAdapter{
 		subscriber: subscriber,
-		handlers:   make(map[string]command.Handler),
 		outputCh:   make(chan *message.Message, 100),
 		closeCh:    make(chan struct{}),
 	}
@@ -41,24 +35,11 @@ func (a *CommandSubscriberAdapter) Subscribe(
 	topic string,
 ) (<-chan *message.Message, error) {
 	handler := func(ctx context.Context, cmd command.Command) error {
-		msg := CommandToMessage(cmd)
-
-		select {
-		case a.outputCh <- msg:
-			return nil
-		case <-a.closeCh:
-			return errorfamily.WrapInfrastructure(
-				event.ErrBusClosed,
-				"watermill.topic_closed",
-				fmt.Sprintf("topic %s", topic),
-			)
-		case <-ctx.Done():
-			return errorfamily.WrapInfrastructure(
-				ctx.Err(),
-				"watermill.topic_cancelled",
-				fmt.Sprintf("topic %s", topic),
-			)
+		if err := a.offer(ctx, CommandToMessage(cmd), a.outputCh, a.closeCh); err != nil {
+			return wrapOfferError(err, topic)
 		}
+
+		return nil
 	}
 
 	//cqrs-lint:ignore(C027) library code or intentional pattern
@@ -66,17 +47,17 @@ func (a *CommandSubscriberAdapter) Subscribe(
 		return nil, wrapSubscribeError(err, topic)
 	}
 
-	registerSubscriberHandler(&a.handlersMu, a.handlers, topic, handler)
-
 	return a.outputCh, nil
 }
 
-// Close closes the subscriber and the output channel.
+// Close stops delivering commands: buffered messages can still be read, then
+// the output channel is closed.
+//
+// Handlers registered by Subscribe stay on the command.Subscriber (it has no
+// unsubscribe) and reject every later command with [event.ErrBusClosed].
+// If the subscriber implements Close, it is closed too.
 func (a *CommandSubscriberAdapter) Close() error {
-	a.closeOnce.Do(func() {
-		close(a.closeCh)
-		close(a.outputCh)
-	})
+	a.outputGate.close(a.closeCh, a.outputCh)
 
 	if closer, ok := a.subscriber.(interface{ Close() error }); ok {
 		return closer.Close()
