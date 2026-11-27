@@ -153,23 +153,34 @@ func knowsEdgeRef() graph.EdgeRef {
 	return graph.EdgeRef{Type: typeKnows, From: nodeRef("u1"), To: nodeRef("u2")}
 }
 
-// mergeKnows wraps a MergeEdge call for the canonical test edge in a RunInTx,
-// ignoring the transaction error (the test asserts state afterwards).
-func mergeKnows(driver graph.GraphDriver, props map[string]any) {
-	_ = driver.RunInTx(func(sink graph.GraphSink) error {
+// mergeKnows commits the canonical test edge in one transaction.
+func mergeKnows(t *testing.T, driver graph.GraphDriver, props map[string]any) {
+	t.Helper()
+
+	mustCommit(t, driver, func(sink graph.GraphSink) error {
 		return sink.MergeEdge(knowsEdgeRef(), props)
 	})
+}
+
+// mustCommit fails the test when a write the suite expects to succeed is
+// rejected or rolls back: a driver that drops or refuses writes must not pass.
+func mustCommit(t *testing.T, driver graph.GraphDriver, fn func(graph.GraphSink) error) {
+	t.Helper()
+
+	if err := driver.RunInTx(fn); err != nil {
+		t.Fatalf("transaction the suite expected to commit failed: %v", err)
+	}
 }
 
 func testMergeNodeCreates(t *testing.T, driver graph.GraphDriver) {
 	t.Helper()
 
-	_ = driver.RunInTx(func(sink graph.GraphSink) error {
+	mustCommit(t, driver, func(sink graph.GraphSink) error {
 		return sink.MergeNode(nodeRef("u1"), map[string]any{propName: valueAlice})
 	})
 
 	// Node should exist with the property.
-	_ = driver.RunInTx(func(sink graph.GraphSink) error {
+	mustCommit(t, driver, func(sink graph.GraphSink) error {
 		return sink.SetNodeProperty(nodeRef("u1"), "verified", true)
 	})
 }
@@ -177,14 +188,14 @@ func testMergeNodeCreates(t *testing.T, driver graph.GraphDriver) {
 func testMergeNodeUpdates(t *testing.T, driver graph.GraphDriver) {
 	t.Helper()
 
-	_ = driver.RunInTx(func(sink graph.GraphSink) error {
+	mustCommit(t, driver, func(sink graph.GraphSink) error {
 		return sink.MergeNode(
 			nodeRef("u1"),
 			map[string]any{propName: valueAlice, "age": ageAlice},
 		)
 	})
 
-	_ = driver.RunInTx(func(sink graph.GraphSink) error {
+	mustCommit(t, driver, func(sink graph.GraphSink) error {
 		// Update only name — age should be preserved by MERGE semantics.
 		return sink.MergeNode(nodeRef("u1"), map[string]any{propName: "alice2"})
 	})
@@ -193,11 +204,11 @@ func testMergeNodeUpdates(t *testing.T, driver graph.GraphDriver) {
 func testMergeEdgeCreatesEndpoints(t *testing.T, driver graph.GraphDriver) {
 	t.Helper()
 
-	mergeKnows(driver, map[string]any{"since": "2024"})
+	mergeKnows(t, driver, map[string]any{"since": "2024"})
 
 	// Both endpoints should exist even though we never called MergeNode.
 	// Removing the edge should leave endpoints.
-	_ = driver.RunInTx(func(sink graph.GraphSink) error {
+	mustCommit(t, driver, func(sink graph.GraphSink) error {
 		return sink.RemoveEdge(knowsEdgeRef())
 	})
 }
@@ -205,16 +216,16 @@ func testMergeEdgeCreatesEndpoints(t *testing.T, driver graph.GraphDriver) {
 func testMergeEdgeUpdatesProps(t *testing.T, driver graph.GraphDriver) {
 	t.Helper()
 
-	mergeKnows(driver, map[string]any{"since": "2024"})
+	mergeKnows(t, driver, map[string]any{"since": "2024"})
 
 	// Merge again with new property — should update, not duplicate.
-	mergeKnows(driver, map[string]any{"strength": strengthMid})
+	mergeKnows(t, driver, map[string]any{"strength": strengthMid})
 }
 
 func testRemoveNodeDeletesIncidentEdges(t *testing.T, driver graph.GraphDriver) {
 	t.Helper()
 
-	_ = driver.RunInTx(func(sink graph.GraphSink) error {
+	mustCommit(t, driver, func(sink graph.GraphSink) error {
 		if err := sink.MergeNode(nodeRef("u1"), nil); err != nil {
 			return fmt.Errorf("merge node u1: %w", err)
 		}
@@ -230,7 +241,7 @@ func testRemoveNodeDeletesIncidentEdges(t *testing.T, driver graph.GraphDriver) 
 	}
 
 	// Node should be gone — re-merging should succeed (it was deleted).
-	_ = driver.RunInTx(func(sink graph.GraphSink) error {
+	mustCommit(t, driver, func(sink graph.GraphSink) error {
 		return sink.MergeNode(nodeRef("u1"), map[string]any{propName: "recreated"})
 	})
 }
@@ -238,7 +249,7 @@ func testRemoveNodeDeletesIncidentEdges(t *testing.T, driver graph.GraphDriver) 
 func testRemoveEdgeLeavesEndpoints(t *testing.T, driver graph.GraphDriver) {
 	t.Helper()
 
-	mergeKnows(driver, nil)
+	mergeKnows(t, driver, nil)
 
 	err := driver.RunInTx(func(sink graph.GraphSink) error {
 		return sink.RemoveEdge(graph.EdgeRef{
@@ -250,7 +261,7 @@ func testRemoveEdgeLeavesEndpoints(t *testing.T, driver graph.GraphDriver) {
 	}
 
 	// Endpoints still exist — SetNodeProperty should succeed.
-	_ = driver.RunInTx(func(sink graph.GraphSink) error {
+	mustCommit(t, driver, func(sink graph.GraphSink) error {
 		return sink.SetNodeProperty(nodeRef("u1"), propName, "still here")
 	})
 }
@@ -281,7 +292,7 @@ func testAtomicRollbackOnError(t *testing.T, driver graph.GraphDriver) {
 	}
 
 	// After rollback, re-creating u1 should work (it was rolled back).
-	_ = driver.RunInTx(func(sink graph.GraphSink) error {
+	mustCommit(t, driver, func(sink graph.GraphSink) error {
 		return sink.MergeNode(nodeRef("u1"), map[string]any{propName: valueAlice})
 	})
 }

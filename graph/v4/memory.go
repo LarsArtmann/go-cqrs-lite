@@ -17,11 +17,16 @@ import (
 // atomicity (not just the illusion of it) — the same guarantee a real graph
 // database's transaction provides.
 //
-// MemoryDriver is safe for concurrent use. It is suitable for tests and for
-// single-process local-first applications that want graph-shaped reads without
-// deploying a graph database.
+// MemoryDriver is safe for concurrent use: writers are serialised (one
+// transaction at a time, like a single-writer database), so a transaction
+// always starts from the graph the previous one committed. fn must not call
+// RunInTx on the same driver, that would wait on itself. Reads see the last
+// committed graph. It is suitable for tests and for single-process
+// local-first applications that want graph-shaped reads without deploying a
+// graph database.
 type MemoryDriver struct {
 	mu     sync.Mutex
+	txMu   sync.Mutex
 	data   *graphData
 	schema *Schema
 }
@@ -57,7 +62,13 @@ func NewMemoryDriver(opts ...MemoryDriverOption) *MemoryDriver {
 
 // RunInTx executes fn against a transactional snapshot. All writes commit
 // atomically when fn returns nil; any error discards the snapshot.
+//
+// Transactions are serialised: concurrent calls wait for the running one, so
+// overlapping transactions cannot overwrite each other's writes.
 func (d *MemoryDriver) RunInTx(fn func(GraphSink) error) error {
+	d.txMu.Lock()
+	defer d.txMu.Unlock()
+
 	d.mu.Lock()
 	snapshot := d.data.clone()
 	d.mu.Unlock()

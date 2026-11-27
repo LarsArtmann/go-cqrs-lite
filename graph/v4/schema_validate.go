@@ -46,24 +46,41 @@ func (s *Schema) validateProps(declared []PropertyType, owner string, props map[
 }
 
 // validateEdgeRef checks that ref conforms to the schema's declared edge type,
-// including endpoint label constraints.
+// including endpoint label and key prop constraints.
 func (s *Schema) validateEdgeRef(ref EdgeRef) error {
 	edgeType := s.EdgeType(ref.Type)
 	if edgeType == nil {
 		return fmt.Errorf("%w: %q", errSinkUnknownEdgeType, ref.Type)
 	}
 
-	if ref.From.Label != edgeType.FromLabel {
+	if err := s.validateEndpoint(ref.From, "from", ref.Type, edgeType.FromLabel); err != nil {
+		return err
+	}
+
+	return s.validateEndpoint(ref.To, "to", ref.Type, edgeType.ToLabel)
+}
+
+// validateEndpoint checks that an edge endpoint is a well-formed node of the
+// label the edge type declares: right label, and the key prop that node type
+// declares. Without the key check a typo would create a phantom node.
+func (s *Schema) validateEndpoint(ref NodeRef, role, typ, label string) error {
+	if ref.Label != label {
 		return fmt.Errorf(
-			"%w: edge %q: expected from-label %q, got %q",
-			errSinkEdgeEndpointMismatch, ref.Type, edgeType.FromLabel, ref.From.Label,
+			"%w: edge %q: expected %s-label %q, got %q",
+			errSinkEdgeEndpointMismatch, typ, role, label, ref.Label,
 		)
 	}
 
-	if ref.To.Label != edgeType.ToLabel {
+	// An endpoint label without a node type cannot have a declared key prop.
+	declared := ""
+	if nodeType := s.NodeType(ref.Label); nodeType != nil {
+		declared = nodeType.KeyProp
+	}
+
+	if ref.KeyProp != declared {
 		return fmt.Errorf(
-			"%w: edge %q: expected to-label %q, got %q",
-			errSinkEdgeEndpointMismatch, ref.Type, edgeType.ToLabel, ref.To.Label,
+			"%w: edge %q: %s endpoint %q: expected key prop %q, got %q",
+			errSinkWrongKeyProp, typ, role, ref.Label, declared, ref.KeyProp,
 		)
 	}
 
