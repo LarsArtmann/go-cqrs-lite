@@ -70,7 +70,7 @@ func newCache[T any, K fmt.Stringer](
 		store:  store,
 		cache:  otter.Must(otterOpts),
 		copyFn: cfg.copyFn,
-	}, nil
+	}, nil //nolint:exhaustruct_v5 // writes is a ready zero value
 }
 
 // shallowCopy duplicates the top-level value: assignments to the caller's

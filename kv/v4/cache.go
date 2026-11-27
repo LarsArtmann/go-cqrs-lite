@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -55,6 +56,10 @@ type Cache[T any, K fmt.Stringer] struct {
 	store  ViewStore[T, K]
 	cache  *otter.Cache[string, *T]
 	copyFn func(*T) (*T, error)
+
+	// writes counts Set/Delete calls so a Get loading from the store can tell
+	// that its value was overtaken (see loadThrough).
+	writes atomic.Uint64
 }
 
 // CacheOption configures a [Cache].
@@ -115,6 +120,9 @@ func NewCache[T any, K fmt.Stringer](
 // On cache miss, delegates to the underlying store and caches the result.
 // Negative results (ErrNotFound) are NOT cached. The returned value is a deep
 // copy owned by the caller; mutating it never affects the cache.
+//
+// A write that overtakes a load is not hidden by it: the loaded value is not
+// kept when a Set or Delete ran while it was being read.
 func (cs *Cache[T, K]) Get(ctx context.Context, keyID K) (*T, error) {
 	key := keyID.String()
 
@@ -122,19 +130,7 @@ func (cs *Cache[T, K]) Get(ctx context.Context, keyID K) (*T, error) {
 		return cs.copy(val)
 	}
 
-	val, err := cs.store.Get(ctx, keyID)
-	if err != nil {
-		return nil, err //nolint:wrapcheck // transparent cache proxy
-	}
-
-	cached, err := cs.copy(val)
-	if err != nil {
-		return nil, err
-	}
-
-	cs.cache.Set(key, cached)
-
-	return val, nil
+	return cs.loadThrough(ctx, key, keyID) //nolint:wrapcheck // transparent cache proxy
 }
 
 // Has reports whether a value exists for id.
@@ -168,6 +164,8 @@ func (cs *Cache[T, K]) Has(ctx context.Context, keyID K) (bool, error) {
 // The cache stores a private deep copy of val, so mutating val after Set
 // returns never affects subsequent reads.
 func (cs *Cache[T, K]) Set(ctx context.Context, keyID K, val *T) error {
+	cs.writes.Add(1)
+
 	err := cs.store.Set(ctx, keyID, val)
 	if err != nil {
 		return err //nolint:wrapcheck // transparent cache proxy
@@ -189,6 +187,8 @@ func (cs *Cache[T, K]) Set(ctx context.Context, keyID K, val *T) error {
 
 // Delete removes the value from the store and invalidates the cache entry.
 func (cs *Cache[T, K]) Delete(ctx context.Context, keyID K) error {
+	cs.writes.Add(1)
+
 	err := cs.store.Delete(ctx, keyID)
 	if err != nil {
 		return err //nolint:wrapcheck // transparent cache proxy
