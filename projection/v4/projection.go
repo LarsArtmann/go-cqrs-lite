@@ -32,8 +32,15 @@ type projectionFunc struct {
 	eventTypes []cqrsevent.Type
 }
 
-// NewProjection creates a Projection from a handler function and event type
-// filter. Events whose type is not in eventTypes are silently skipped.
+// NewProjection creates a Projection from a handler function and the list
+// of event types it is interested in.
+//
+// eventTypes is a declaration, not a filter: it is returned by EventTypes so
+// a projection runner can route or subscribe only those types. Handle itself
+// does NOT filter and invokes handle for every event it is given, whatever
+// its type, so a runner that feeds Handle a mixed stream must apply
+// EventTypes itself (or the handler must ignore unknown types). An empty
+// eventTypes declares no restriction.
 func NewProjection(
 	name string,
 	handle func(context.Context, cqrsevent.Event) error,
