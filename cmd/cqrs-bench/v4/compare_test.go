@@ -140,10 +140,8 @@ func TestCLI_Compare_RejectsUnknownAndDuplicateBackends(t *testing.T) {
 				t.Fatalf("compare --backends %q should fail", tc.backends)
 			}
 
-			for _, teaches := range tc.teaches {
-				if !strings.Contains(run.stderr, teaches) {
-					t.Errorf("error should mention %q:\n%s", teaches, run.stderr)
-				}
+			if !mentions(run.stderr, tc.teaches...) {
+				t.Errorf("error should mention %v:\n%s", tc.teaches, run.stderr)
 			}
 		})
 	}
@@ -160,7 +158,7 @@ func TestCLI_Compare_AllFailedExitsNonZero(t *testing.T) {
 		t.Fatal("compare whose only backend failed must exit non-zero")
 	}
 
-	if !strings.Contains(run.stderr, "--dsn") {
+	if !mentions(run.stderr, "--dsn") {
 		t.Errorf("error should tell the operator what is missing:\n%s", run.stderr)
 	}
 }

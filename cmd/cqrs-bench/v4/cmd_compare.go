@@ -51,7 +51,7 @@ func compareHandler(ctx context.Context, _ *appConfig, flags compareFlags) error
 // plan validates the compare flags on top of the shared ones and resolves
 // --backends into canonical names in report order.
 func (f compareFlags) plan() (benchPlan, []string, error) {
-	plan, baseErr := f.benchFlags.plan()
+	plan, baseErr := f.BenchFlags.plan()
 
 	names, namesErr := backendsFromList(f.Backends)
 

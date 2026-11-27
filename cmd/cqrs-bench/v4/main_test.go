@@ -75,7 +75,24 @@ func runBench(scratch string, args ...string) benchRun {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	return benchRun{stdout: stdout.String(), stderr: stderr.String(), err: cmd.Run()}
+	err := cmd.Run()
+
+	return benchRun{stdout: stdout.String(), stderr: stderr.String(), err: err}
+}
+
+// mentions reports whether output names every phrase. The error box applies
+// sentence case to what it renders ("Unknown backend", "--Dsn required"), so
+// the comparison ignores case.
+func mentions(output string, phrases ...string) bool {
+	folded := strings.ToLower(output)
+
+	for _, phrase := range phrases {
+		if !strings.Contains(folded, strings.ToLower(phrase)) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // mustRunBench runs cqrs-bench and fails the test when it exits non-zero.

@@ -86,6 +86,11 @@ func (s *SnapshotStore) Save(
 
 	key := s.snapshotKey(snap.StreamType, snap.StreamID)
 
+	// The version check and the write must be one step per stream, otherwise
+	// two concurrent saves can both see no snapshot and the older one wins.
+	locked := s.lockShards(key)
+	defer s.unlockShards(locked)
+
 	existing, found, err := s.loadRaw(key)
 	if err != nil {
 		cqrsotel.RecordError(span, err)

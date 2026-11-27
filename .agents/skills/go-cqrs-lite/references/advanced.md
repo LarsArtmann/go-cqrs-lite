@@ -167,9 +167,12 @@ type UserCreated struct {
 ```
 
 ```bash
-go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4@latest
+go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4@master
+
+# the train cuts no releases: @latest is the 2026-10 generator that predates
+# this contract, and the binary must be on PATH for go generate
 cqrs-gen --catalog ./...   # typed constructors, registration, catalog declarations
-cqrs-gen --check ./...     # CI gate: fail when a generated file is missing or stale
+cqrs-gen --catalog --check ./...   # CI gate: the directive's flags; fail on a missing or stale file
 ```
 
 Per marked struct it derives a typed constructor (`NewX` for a command or

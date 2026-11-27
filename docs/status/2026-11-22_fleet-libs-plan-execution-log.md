@@ -70,9 +70,12 @@
 
 ### T21 cqrs-gen dogfood — DONE
 
-- `//cqrs:command task.create` marker on CreateTaskCmd (example/taskmanager/handlers.go);
-  handlers_gen.go committed beside it; README regeneration-loop section. Generator quirk
-  recorded: needs an ABSOLUTE path arg (`cqrs-gen --type=command --output=<abs> <abs-dir>`).
+- ~~`//cqrs:command task.create` marker on CreateTaskCmd (example/taskmanager/handlers.go);~~
+  ~~handlers_gen.go committed beside it; README regeneration-loop section. Generator quirk~~
+  ~~recorded: needs an ABSOLUTE path arg (`cqrs-gen --type=command --output=<abs> <abs-dir>`).~~
+  **Superseded — the loop never ran: `RegisterCreateTaskCmdHandler` had zero
+  callers and no test compiled or executed generated code. Retired in `0b4d58409`;
+  `example/goal-shaped-app` is the live dogfood (ADR-0168).**
 
 ### T22 go-sse CHANGELOG — DONE (other repo, commit 1b7d168)
 

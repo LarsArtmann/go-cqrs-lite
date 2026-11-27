@@ -10,10 +10,10 @@ type appConfig struct {
 	cmdguard.Config
 }
 
-// benchFlags are the flags every benchmark command shares. run, compare,
-// and sweep all build the same benchkit.Config from them (benchFlags.config),
+// BenchFlags are the flags every benchmark command shares. run, compare,
+// and sweep all build the same benchkit.Config from them (BenchFlags.config),
 // so a flag cannot reach one command and be dropped by another.
-type benchFlags struct {
+type BenchFlags struct {
 	Backend        string            `default:"memory" flag:"backend"                  help:"Backend to benchmark: memory, system-memory, sqlite, sqlite-cgo, bbolt, pebble, turso, duckdb, postgres, mysql (aliases: mem, sys-mem, sq, sq3, bolt, peb, duck, pg, maria, mariadb)"`
 	DSN            string            `default:""       flag:"dsn"                      help:"Database connection string: required by postgres and mysql; for sqlite and duckdb a path names the store file, which a measuring run needs absent or empty"`
 	Dir            string            `default:""       flag:"dir"                      help:"Directory for an embedded backend's store (sqlite, sqlite-cgo, bbolt, pebble, turso, duckdb); created when missing and kept under <dir>/.cqrs-bench/<backend>/ for --replay"`
@@ -43,9 +43,9 @@ type benchFlags struct {
 	ReservoirSize  int               `default:"0"      flag:"reservoir-size"           help:"Latency samples each phase retains once the workload exceeds it (default 10000). Raise for 10M+ event profiles; Min/Max/Mean stay exact at any size"`
 }
 
-// runFlags extends benchFlags with the flags of the run command.
+// runFlags extends BenchFlags with the flags of the run command.
 type runFlags struct {
-	benchFlags
+	BenchFlags
 
 	Warmup      int               `default:"0"     flag:"warmup"       help:"Warmup operations before timing, written to a separate throwaway store"`
 	Recovery    bool              `default:"false" flag:"recovery"     help:"Enable the crash-recovery phase (close, reopen, reload)"`
@@ -56,16 +56,16 @@ type runFlags struct {
 	IncludeRuns bool              `default:"false" flag:"include-runs" help:"With --format manifest: serialize every repeat run (runs[]) alongside the median; the file grows N-fold"`
 }
 
-// compareFlags extends benchFlags with the flags of the compare command.
+// compareFlags extends BenchFlags with the flags of the compare command.
 type compareFlags struct {
-	benchFlags
+	BenchFlags
 
 	Backends string `default:"memory,sqlite,pebble" flag:"backends" help:"Comma-separated backends to compare, in report order"`
 }
 
-// sweepFlags extends benchFlags with the flags of the sweep command.
+// sweepFlags extends BenchFlags with the flags of the sweep command.
 type sweepFlags struct {
-	benchFlags
+	BenchFlags
 
 	Param  string `default:"workers" flag:"param"  help:"Parameter to sweep: workers, batchSize, streamLength, gomaxprocs"`
 	Values string `default:""        flag:"values" help:"Comma-separated values (at least two) for the parameter, e.g. 1,2,4,8"`

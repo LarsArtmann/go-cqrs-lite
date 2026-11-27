@@ -47,7 +47,9 @@ func (s NamedSample) Sample() any { return s.sample }
 // that differ from Go struct names ("TaskCreated").
 //
 // Returns an error if no Created sample is found (insert is the minimum
-// requirement), or if multiple samples match the same suffix.
+// requirement), if multiple samples match the same suffix, or if a sample is
+// not a struct or has no exported field named keyField (such as an empty
+// struct): the event type cannot be identified without its key.
 func AutoCRUDByNamedEvents[R any](keyField string, samples ...NamedSample) ([]Fold, error) {
 	resultType := reflect.TypeFor[R]()
 
@@ -101,9 +103,14 @@ func AutoCRUDByNamedEvents[R any](keyField string, samples ...NamedSample) ([]Fo
 			deletedType = t
 		default:
 			return nil, fmt.Errorf(
-				"AutoCRUDByNamedEvents: type %s does not match *Created/*Updated/*Deleted suffix",
-				name,
+				"AutoCRUDByNamedEvents: sample for event type %q has type %q, which does not match "+
+					"the *Created/*Updated/*Deleted suffix convention",
+				s.eventType, name,
 			)
+		}
+
+		if err := namedSampleUsable(s, t, keyField); err != nil {
+			return nil, err
 		}
 	}
 
@@ -135,6 +142,23 @@ func AutoCRUDByNamedEvents[R any](keyField string, samples ...NamedSample) ([]Fo
 	}
 
 	return folds, nil
+}
+
+// namedSampleUsable rejects a sample type the generated folds could not read
+// the key from. The convention helpers panic on such input; this
+// error-returning generator refuses it instead.
+func namedSampleUsable(s NamedSample, t reflect.Type, keyField string) error {
+	if t.Kind() != reflect.Struct {
+		return fmt.Errorf("AutoCRUDByNamedEvents: sample for event type %q is a %s, not a struct",
+			s.eventType, t.Kind())
+	}
+
+	if _, err := findField(t, keyField); err != nil {
+		return fmt.Errorf("AutoCRUDByNamedEvents: sample for event type %q (type %s) is unusable: %w",
+			s.eventType, t.Name(), err)
+	}
+
+	return nil
 }
 
 // overrideEventType replaces the eventType field on a generated fold with the

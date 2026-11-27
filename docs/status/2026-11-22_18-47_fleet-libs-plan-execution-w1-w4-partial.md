@@ -54,8 +54,11 @@ modules) + three DEP_BUDGET raises with rationale.
   loaded, design settled (see b).
 - T20 signing DeterministicCodec guard: DONE, test green (pins both the
   stored-bytes contract and the codec marker for any future re-encoding).
-- T21 cqrs-gen dogfood: DONE — `//cqrs:command task.create` marker +
-  committed `handlers_gen.go` + README loop.
+- ~~T21 cqrs-gen dogfood: DONE — `//cqrs:command task.create` marker +~~
+  ~~committed `handlers_gen.go` + README loop.~~ **Superseded — the dogfood
+  never ran: `RegisterCreateTaskCmdHandler` had zero callers and no test compiled
+  or executed generated code. Retired in `0b4d58409`;
+  `example/goal-shaped-app` is the live dogfood (ADR-0168).**
 - T22 go-sse CHANGELOG: DONE in the go-sse repo (commit `1b7d168`) —
   [0.7.0] section cut from Unreleased, dated to the tag.
 - T23 audit infra: DONE — `scripts/check-libreports.sh` + `nix run

@@ -10,8 +10,15 @@ markers, so a wire name is stated once and nothing is hand-copied.
 ## Install
 
 ```bash
-go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4@latest
+go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4@master
 ```
+
+`cmd/cqrs-gen/v4` is an internal tool train that cuts no releases
+([ADR-0152](../../../docs/adr/0152-fleet-first-module-topology-v5-dual-support.md)),
+so `@latest` is `v4.3.3` from 2026-10-05, which predates everything described
+here: install from `master` until the train tags again. The binary has to be on
+`PATH` for `go generate`, and for the `go-generate` step of BuildFlow, which
+fails and names a generator it cannot find.
 
 ## Markers
 
@@ -81,12 +88,14 @@ type InvoiceReceived struct {
 cqrs-gen .                 # every package below the working directory
 cqrs-gen ./...             # the same, spelled the way the go command spells it
 cqrs-gen --catalog ./...   # also declare every marked message for the catalog
-cqrs-gen --check ./...     # CI gate: fail when a generated file is missing or stale
+cqrs-gen --catalog --check ./...   # CI gate: fail when a generated file is missing or stale
 cqrs-gen --list ./...      # print the discovered markers, write nothing
 ```
 
 Put `//go:generate cqrs-gen .` in one file of a package to regenerate it with
-`go generate`.
+`go generate`. `--check` compares each file with what the generator writes for
+the same flags, so pass the flags of the package's directive: for a package
+generated with `--catalog`, a plain `--check` reports the file as stale.
 
 ### Generated output
 

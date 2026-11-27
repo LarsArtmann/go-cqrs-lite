@@ -29,7 +29,7 @@ type benchPlan struct {
 
 // plan validates the shared flags and reports every problem it finds, not
 // only the first, so one round-trip fixes them all.
-func (b benchFlags) plan() (benchPlan, error) {
+func (b BenchFlags) plan() (benchPlan, error) {
 	tier, tierSet, durabilityErr := parseDurability(b.Durability)
 
 	profile, profileErr := profileByName(b.Profile)
@@ -65,7 +65,7 @@ func (b benchFlags) plan() (benchPlan, error) {
 
 // checkNumbers validates the numeric flags. sizes is the parsed
 // --payload-sizes (nil when the flag is unset).
-func (b benchFlags) checkNumbers(sizes []int) error {
+func (b BenchFlags) checkNumbers(sizes []int) error {
 	var errs [5]error
 
 	if b.Repeat < 0 {
@@ -99,7 +99,7 @@ func (b benchFlags) checkNumbers(sizes []int) error {
 // phase, including the ones a backend has no component for, which made
 // --strict fail on every bundled backend. The CLI runs the same gate itself
 // against the backend's inherent skips (see strictGate).
-func (b benchFlags) config(profile benchkit.Profile, enc codec.Codec, sizes []int) benchkit.Config {
+func (b BenchFlags) config(profile benchkit.Profile, enc codec.Codec, sizes []int) benchkit.Config {
 	config := benchkit.Config{
 		Profile:                 profile,
 		PayloadSize:             b.PayloadSize,
@@ -129,7 +129,7 @@ func (b benchFlags) config(profile benchkit.Profile, enc codec.Codec, sizes []in
 }
 
 // skipFlags names the --skip-* flags that are set, for error messages.
-func (b benchFlags) skipFlags() []string {
+func (b BenchFlags) skipFlags() []string {
 	var set []string
 
 	for flag, enabled := range map[string]bool{
@@ -211,7 +211,9 @@ func (p benchPlan) benchmarkError(ctx, runCtx context.Context, runs int, err err
 // names in the given order. An alias resolves to the canonical name, an
 // unknown name and a backend named twice are errors.
 func backendsFromList(list string) ([]string, error) {
-	if strings.TrimSpace(list) == "" {
+	entries := strings.Split(list, ",")
+
+	if !slices.ContainsFunc(entries, func(entry string) bool { return strings.TrimSpace(entry) != "" }) {
 		return nil, fmt.Errorf("%w: --backends names no backend (use: %s)",
 			errFlagValue, strings.Join(backendNames(), ", "))
 	}
@@ -221,7 +223,7 @@ func backendsFromList(list string) ([]string, error) {
 		errs  []error
 	)
 
-	for _, entry := range strings.Split(list, ",") {
+	for _, entry := range entries {
 		entry = strings.TrimSpace(entry)
 
 		spec, ok := lookupBackend(entry)

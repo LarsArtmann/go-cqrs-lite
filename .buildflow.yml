@@ -61,6 +61,16 @@ warnings_budget:
 # regenerate manually with the devShell binary (TODO_LIST "templ generator-pin
 # vs library-pin split brain" row). Re-enable only when the lib re-bump lands
 # (nixpkgs ships a true 1100-era generator) — together with the pin bump.
+#
+# go-generate SKIPPED 2026-11-27: the repo's only //go:generate directive
+# (example/goal-shaped-app) names cqrs-gen, a tool train that cuts no releases
+# and is not on PATH where BuildFlow runs, so the step's pre-flight failed on
+# every run ("requires generator binaries that are not installed or not in
+# PATH: cqrs-gen"). Freshness of the generated file is owned by two gates that
+# run the generator themselves: TestDogfoodIsFresh (cmd/cqrs-gen/v4) and the
+# cqrs-gen-output leg of scripts/check-generated-artifacts.sh. Drop this skip
+# when a second directive needs the step or the generator ships on PATH.
 skip_steps:
   - license-check
   - templ-generate
+  - go-generate

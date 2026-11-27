@@ -3,7 +3,7 @@ package indexing
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"strconv"
 	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -67,8 +67,12 @@ func Stats(ctx context.Context, db *sql.DB) ([]IndexUsageStats, error) {
 	return stats, nil
 }
 
-// UnusedIndexes returns indexes that haven't been used by the query
-// planner (no sqlite_stat1 entry). Requires prior ANALYZE to be useful.
+// UnusedIndexes returns the indexes that have no row in sqlite_stat1.
+// Such a row is written by ANALYZE for every index, used or not, so a missing
+// row means the index was created after the last ANALYZE, or that ANALYZE
+// never ran or its statistics could not be read, in which case every index is
+// returned. The result says nothing about whether the planner uses an index:
+// run ANALYZE and drop only indexes that are still listed.
 func UnusedIndexes(ctx context.Context, db *sql.DB) ([]Index, error) {
 	all, err := Stats(ctx, db)
 	if err != nil {
@@ -83,7 +87,7 @@ func UnusedIndexes(ctx context.Context, db *sql.DB) ([]Index, error) {
 				Name:    s.Name,
 				Table:   s.Table,
 				Columns: s.Columns,
-				Reason:  "no sqlite_stat1 row — planner has not seen this index",
+				Reason:  "no sqlite_stat1 row — created after the last ANALYZE, or ANALYZE never ran",
 			})
 		}
 	}
@@ -188,16 +192,16 @@ func queryStat1(ctx context.Context, db *sql.DB) ([]stat1Row, error) {
 }
 
 func parseStat1Rows(stat string) int64 {
-	// Format: "rows=12345 ...". Take the first integer.
-	for part := range strings.FieldsSeq(stat) {
-		if strings.HasPrefix(part, "rows=") {
-			var n int64
-
-			_, _ = fmt.Sscanf(part, "rows=%d", &n)
-
-			return n
-		}
+	// Format: "<rows> <nEq for column 1> <nEq for columns 1..2> ...".
+	fields := strings.Fields(stat)
+	if len(fields) == 0 {
+		return 0
 	}
 
-	return 0
+	n, err := strconv.ParseInt(fields[0], 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	return n
 }

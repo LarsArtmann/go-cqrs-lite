@@ -1,20 +1,21 @@
 package indexing
 
-// Policy controls how the advisor and auto-indexer handle different
-// table categories. Allows consumers to customize recommendations and
-// automatic index creation per table.
+// Policy describes table categories for index advice. It is a standalone
+// value: neither Advisor nor AutoIndexer reads one, because no option accepts
+// it, so filling a Policy changes no recommendation and no automatic index
+// creation. To exclude tables from analysis use WithExcludedTables instead.
 type Policy struct {
-	// ExcludedTables is a set of table names that the advisor will
-	// skip during analysis.
+	// ExcludedTables lists tables that a consumer of the Policy wants
+	// skipped during analysis. Nothing reads it yet.
 	ExcludedTables map[string]bool
 
-	// CriticalTables is a set of tables where any recommendation is
-	// considered Critical priority. Useful for high-traffic tables
-	// where even optional indexes help.
+	// CriticalTables lists tables whose recommendations a consumer of the
+	// Policy wants treated as Critical priority. Nothing raises the
+	// priority yet.
 	CriticalTables map[string]bool
 
-	// SkipAutoCreate disables automatic index creation for the named
-	// tables even if the advisor recommends indexes for them.
+	// SkipAutoCreate lists tables for which a consumer of the Policy wants
+	// no automatic index creation. Nothing skips them yet.
 	SkipAutoCreate map[string]bool
 }
 

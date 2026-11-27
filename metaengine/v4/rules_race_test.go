@@ -10,9 +10,8 @@ import (
 )
 
 // Plan rules run without the store lock, so they must not read Store.queries
-// while RegisterQuery mutates it. (Rules also read each query's assigned
-// engine without the lock, which a concurrent Replan phase 1 writes — that
-// separate race is deliberately not exercised here.)
+// while RegisterQuery mutates it. Rules reading each query's assigned engine
+// is covered by TestRules_ConcurrentReplansReadAssignedEngine.
 func TestRules_ConcurrentReplanAndRegistration(t *testing.T) {
 	store, err := Plan([]Engine{NewMemoryEngine()}, roleItemQuery())
 	if err != nil {

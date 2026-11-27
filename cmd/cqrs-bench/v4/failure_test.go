@@ -87,7 +87,7 @@ func TestCLI_InterruptedRunCleansUp(t *testing.T) {
 		t.Error("an interrupted run must exit non-zero")
 	}
 
-	if output := scanner.Text() + string(rest); !strings.Contains(output, "interrupted") {
+	if output := scanner.Text() + string(rest); !mentions(output, "interrupted") {
 		t.Errorf("an interrupted run should say so:\n%s", output)
 	}
 
@@ -220,10 +220,13 @@ func TestCLI_StrictRejectsContradictions(t *testing.T) {
 				t.Fatalf("cqrs-bench %s should fail", strings.Join(args, " "))
 			}
 
-			for _, teaches := range []string{"--strict", args[len(args)-1]} {
-				if !strings.Contains(run.stderr, teaches) {
-					t.Errorf("error should mention %q:\n%s", teaches, run.stderr)
-				}
+			conflict := args[len(args)-1]
+			if !strings.HasPrefix(conflict, "--") {
+				conflict = args[len(args)-2]
+			}
+
+			if !mentions(run.stderr, "--strict", conflict) {
+				t.Errorf("error should mention --strict and %q:\n%s", conflict, run.stderr)
 			}
 		})
 	}
@@ -255,12 +258,16 @@ func TestCLI_DirIsCreatedAndKeptForReplay(t *testing.T) {
 		t.Error("--replay read no events from the kept store")
 	}
 
+	inherent := inherentSkippedPhases("sqlite")
+
 	for _, phase := range phaseDocs() {
 		replaySkips := slices.Contains(phase.flags, "--replay")
+		listed := slices.Contains(result.SkippedPhases, phase.label) &&
+			!slices.Contains(inherent, phase.label)
 
-		if replaySkips == slices.Contains(result.SkippedPhases, phase.label) {
-			t.Errorf("phase %q: --replay skips it = %v, report lists it as skipped = %v (skipped: %v)",
-				phase.name, replaySkips, !replaySkips, result.SkippedPhases)
+		if replaySkips != listed {
+			t.Errorf("phase %q: --replay skips it = %v, the replay report lists it as skipped = %v (skipped: %v)",
+				phase.name, replaySkips, listed, result.SkippedPhases)
 		}
 	}
 }

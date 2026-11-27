@@ -638,6 +638,7 @@ claiming/v4/struct Spec
 claiming/v4/type Dialect
 claiming/v4/var ErrLeaseNotHeld
 claiming/v4/var ErrUnsupported
+cmd/cqrs-bench/v4/struct BenchFlags
 cmd/cqrs-gen/v4/struct AppConfig
 cmd/cqrs-lint/v4/func ComputeDeprecatedPanel
 cmd/cqrs-lint/v4/func ComputeHealthScore

@@ -77,7 +77,7 @@ func TestBackendsFromList(t *testing.T) {
 func TestBenchFlagsPlan_ReportsEveryProblem(t *testing.T) {
 	t.Parallel()
 
-	flags := benchFlags{
+	flags := BenchFlags{
 		Profile:      "nope",
 		Codec:        "xml",
 		PayloadSizes: "0",
@@ -100,7 +100,7 @@ func TestBenchFlagsPlan_ReportsEveryProblem(t *testing.T) {
 func TestBenchFlagsPlan_ResolvesSharedFlags(t *testing.T) {
 	t.Parallel()
 
-	flags := benchFlags{
+	flags := BenchFlags{
 		Profile:      "small",
 		Codec:        "cbor",
 		PayloadSizes: " 64, 256 ",
@@ -150,7 +150,7 @@ func TestBenchFlagsPlan_ResolvesSharedFlags(t *testing.T) {
 func TestBenchFlagsConfig_ReachesBenchkit(t *testing.T) {
 	t.Parallel()
 
-	flags := benchFlags{
+	flags := BenchFlags{
 		SkipReads: true, SkipReadModels: true, SkipProjection: true, SkipMetaEngine: true,
 		SkipBatchWrite: true, SkipRawSink: true, SkipJourney: true, SkipQuery: true,
 		SkipSnapshot: true, SkipMixed: true,
@@ -182,7 +182,7 @@ func TestBenchFlagsConfig_ReachesBenchkit(t *testing.T) {
 func TestBenchFlagsPlan_RejectsASinglePayloadSize(t *testing.T) {
 	t.Parallel()
 
-	_, err := (benchFlags{PayloadSizes: "128"}).plan()
+	_, err := (BenchFlags{PayloadSizes: "128"}).plan()
 
 	errorMentions(t, err, "--payload-sizes", "at least two")
 }
@@ -190,13 +190,13 @@ func TestBenchFlagsPlan_RejectsASinglePayloadSize(t *testing.T) {
 func TestSkipFlagsAreNamedAndSorted(t *testing.T) {
 	t.Parallel()
 
-	flags := benchFlags{SkipSnapshot: true, SkipMixed: true}
+	flags := BenchFlags{SkipSnapshot: true, SkipMixed: true}
 
 	if got := flags.skipFlags(); !slices.Equal(got, []string{"--skip-mixed", "--skip-snapshot"}) {
 		t.Errorf("skipFlags = %q", got)
 	}
 
-	if got := (benchFlags{}).skipFlags(); len(got) != 0 {
+	if got := (BenchFlags{}).skipFlags(); len(got) != 0 {
 		t.Errorf("no skip flag is set, got %q", got)
 	}
 }
@@ -248,8 +248,8 @@ func TestBudgetContext(t *testing.T) {
 				t.Fatal("a budget must set a deadline")
 			}
 
-			if got := deadline.Sub(before); got < tc.want-time.Second || got > tc.want {
-				t.Errorf("deadline in %s, want about %s", got, tc.want)
+			if got, want := deadline.Sub(before), tc.want; got < want-time.Second || got > want+time.Second {
+				t.Errorf("deadline in %s, want about %s", got, want)
 			}
 		})
 	}
@@ -314,9 +314,9 @@ func TestProfileNamesMatchBenchkitAndTheFlag(t *testing.T) {
 		}
 	}
 
-	field, ok := reflect.TypeFor[benchFlags]().FieldByName("Profile")
+	field, ok := reflect.TypeFor[BenchFlags]().FieldByName("Profile")
 	if !ok {
-		t.Fatal("benchFlags has no Profile field")
+		t.Fatal("BenchFlags has no Profile field")
 	}
 
 	if got := strings.Split(field.Tag.Get("values"), ","); !slices.Equal(got, profileNames()) {

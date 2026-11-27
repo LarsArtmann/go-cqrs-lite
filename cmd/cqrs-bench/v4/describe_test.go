@@ -10,15 +10,12 @@ import (
 	cmdguard "github.com/larsartmann/cmdguard/v5/pkg/cmdguard/v5"
 )
 
-// cmdguardFlags are the flags cmdguard adds to every command; they are not
-// part of cqrs-bench's own surface.
-var cmdguardFlags = []string{"help", "config", "log-format", "log-level", "no-color"}
-
 // describedFlag is one flag of the `describe` contract.
 type describedFlag struct {
-	Name   string   `json:"name"`
-	Values []string `json:"values"`
-	Usage  string   `json:"usage"`
+	Name      string   `json:"name"`
+	Values    []string `json:"values"`
+	Usage     string   `json:"usage"`
+	Inherited bool     `json:"inherited"`
 }
 
 // describedCommand is one command of the `describe` contract.
@@ -49,11 +46,12 @@ func describe(t *testing.T) map[string][]describedFlag {
 	return byName
 }
 
-// ownFlags are a command's flags without the cmdguard additions.
+// ownFlags are a command's own flags: neither one inherited from the root nor
+// the help flag cmdguard adds to every command.
 func ownFlags(flags []describedFlag) []string {
 	names := make([]string, 0, len(flags))
 	for _, flag := range flags {
-		if !slices.Contains(cmdguardFlags, flag.Name) {
+		if !flag.Inherited && flag.Name != "help" {
 			names = append(names, flag.Name)
 		}
 	}
@@ -64,7 +62,7 @@ func ownFlags(flags []describedFlag) []string {
 }
 
 // flagNames lists the `flag:"..."` tags of a flag struct and its embedded
-// benchFlags, in declaration order.
+// BenchFlags, in declaration order.
 func flagNames(structType reflect.Type) []string {
 	names := []string{}
 
@@ -140,9 +138,9 @@ func TestCLI_EnumFlagsDescribeTheirValues(t *testing.T) {
 func TestBackendHelpListsEveryBackend(t *testing.T) {
 	t.Parallel()
 
-	field, ok := reflect.TypeFor[benchFlags]().FieldByName("Backend")
+	field, ok := reflect.TypeFor[BenchFlags]().FieldByName("Backend")
 	if !ok {
-		t.Fatal("benchFlags has no Backend field")
+		t.Fatal("BenchFlags has no Backend field")
 	}
 
 	help := field.Tag.Get("help")

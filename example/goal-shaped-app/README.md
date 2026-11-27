@@ -174,7 +174,8 @@ bare string (it implements `encoding.TextMarshaler`), so branding costs
 nothing on the serialized surface.
 
 ```bash
-go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4@latest
+# the generator's train cuts no releases: @latest predates the package-aware output
+go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4@master
 cd example/goal-shaped-app && go generate ./...
 ```
 

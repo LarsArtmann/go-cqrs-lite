@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"slices"
 	"strings"
 	"testing"
@@ -92,7 +91,7 @@ func TestPhaseDocs_EverySkipFlagSkipsItsPhase(t *testing.T) {
 }
 
 // TestPhaseDocs_FlagsAgreeWithTheSkipFlags: a phase documented as skipped by
-// a --skip-* flag has that flag on benchFlags, and vice versa.
+// a --skip-* flag has that flag on BenchFlags, and vice versa.
 func TestPhaseDocs_FlagsAgreeWithTheSkipFlags(t *testing.T) {
 	t.Parallel()
 
@@ -106,34 +105,52 @@ func TestPhaseDocs_FlagsAgreeWithTheSkipFlags(t *testing.T) {
 		}
 	}
 
-	all := benchFlags{
+	all := BenchFlags{
 		SkipReads: true, SkipReadModels: true, SkipProjection: true, SkipMetaEngine: true,
 		SkipBatchWrite: true, SkipRawSink: true, SkipJourney: true, SkipQuery: true,
 		SkipSnapshot: true, SkipMixed: true,
 	}
 
 	slices.Sort(documented)
+	documented = slices.Compact(documented)
 
 	if !slices.Equal(documented, all.skipFlags()) {
 		t.Errorf("flags in the listing = %q, skip flags on the command = %q", documented, all.skipFlags())
 	}
 }
 
-func TestListPhases(t *testing.T) {
+// TestCLI_ListPhases: the documented invocation lists every phase in
+// execution order, each followed by the flags that skip it.
+func TestCLI_ListPhases(t *testing.T) {
 	t.Parallel()
 
-	var out strings.Builder
+	lines := strings.Split(mustRunBench(t, t.TempDir(), "list-phases").stdout, "\n")
 
-	if err := listPhasesHandler(
-		t.Context(),
-		&appConfig{},
-		noFlagsForTest(),
-	); !errors.Is(err, errImpossible) &&
-		err != nil {
-		t.Fatalf("listPhasesHandler: %v", err)
+	if len(lines) == 0 || lines[0] != "Benchmark phases (execution order):" {
+		t.Fatalf("list-phases does not start with its header:\n%s", strings.Join(lines, "\n"))
 	}
 
-	if !strings.Contains(out.String(), "") {
-		t.Fatal("unreachable")
+	previous := -1
+
+	for _, phase := range phaseDocs() {
+		name, summary := "  "+phase.name, phase.summary
+
+		index := slices.IndexFunc(lines, func(line string) bool {
+			return strings.HasPrefix(line, name) && strings.HasSuffix(line, summary)
+		})
+		if index <= previous {
+			t.Errorf("phase %q is missing from list-phases or out of execution order:\n%s",
+				phase.name, strings.Join(lines, "\n"))
+			continue
+		}
+		previous = index
+
+		skippedBy := lines[min(index+2, len(lines)-1)]
+		for _, flag := range phase.flags {
+			if !strings.Contains(skippedBy, flag) {
+				t.Errorf("phase %q: the skipped-by line does not name %s:\n%s",
+					phase.name, flag, strings.Join(lines, "\n"))
+			}
+		}
 	}
 }

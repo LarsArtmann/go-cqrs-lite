@@ -128,6 +128,14 @@ host and the timers, returns `system.ErrAlreadyStarted` on a second call, and
 belongs BEFORE the first command dispatch. `sys.ProjectionHost().Start(ctx)`
 remains the narrow seam for starting only the host.
 
+**The registration line is derivable.** `system.RegisterCommand` above is the
+hand-written form. Mark the command struct with `//cqrs:command
+counter.increment` and `cqrs-gen` derives the equivalent registration, a typed
+constructor for a command that embeds `command.BasicCommand`, and with
+`--catalog` the AsyncAPI/OpenAPI message list, all in one `cqrs_gen.go` per
+package ([advanced.md](advanced.md) §6.7); `example/goal-shaped-app` is the
+worked example.
+
 NOTE: `system.RawQuery` means hand-declared, NOT raw SQL — the wrapped
 `metaengine.QueryDecl` still plans and executes through metaengine engines.
 Keeping a second satellite persistence path beside the system (sqlc,

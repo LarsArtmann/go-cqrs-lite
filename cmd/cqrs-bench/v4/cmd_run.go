@@ -62,7 +62,7 @@ func runHandler(ctx context.Context, _ *appConfig, flags runFlags) error {
 
 // plan validates the run flags on top of the shared ones.
 func (f runFlags) plan() (benchPlan, error) {
-	plan, baseErr := f.benchFlags.plan()
+	plan, baseErr := f.BenchFlags.plan()
 
 	soaking := f.Soak.Duration() > 0
 

@@ -1,6 +1,9 @@
 package metaengine
 
-import "fmt"
+import (
+	"fmt"
+	"reflect"
+)
 
 // PlanContext carries everything a PlanRule needs to make decisions.
 // Rules run AFTER engine assignment — they enrich the PlanResult
@@ -30,7 +33,8 @@ type RulePipeline struct {
 	rules []PlanRule
 }
 
-// declaredQuery resolves the query declaration behind a planned assignment.
+// declaredQuery resolves the query declaration behind a planned assignment as
+// a snapshot (see snapshotForRule).
 // The bool is false when the plan references a query the store no longer
 // knows; advisory rules skip those silently (re-planning owns the error).
 func declaredQuery(ctx PlanContext, q QueryAssignment) (queryMeta, bool) {
@@ -38,13 +42,17 @@ func declaredQuery(ctx PlanContext, q QueryAssignment) (queryMeta, bool) {
 		return nil, false
 	}
 
-	// Rules run without the store lock; RegisterQuery may add entries concurrently.
+	// Rules run without the store lock; RegisterQuery may add entries and a
+	// concurrent Replan may re-assign engines.
 	ctx.Store.mu.RLock()
 	defer ctx.Store.mu.RUnlock()
 
 	meta, ok := ctx.Store.queries[q.QueryName]
+	if !ok {
+		return nil, false
+	}
 
-	return meta, ok
+	return ctx.Store.snapshotForRule(meta), true
 }
 
 // eachDeclaredQuery iterates the plan's queries that resolve to a declared
@@ -109,4 +117,24 @@ func defaultRules(cfg planConfig) []PlanRule {
 	}
 
 	return rules
+}
+
+// snapshotForRule returns an independent copy of a registered query with its
+// planner assignment, for a plan rule to read. Rules run without the store
+// lock while a concurrent Replan rewrites the assignment, and even the
+// value-receiver readers of a query copy the assigned engine along, so a rule
+// must never touch the registered object itself.
+//
+// Caller MUST hold s.mu (read lock suffices). A query meta that is not a
+// pointer is already an independent value and is returned as is.
+func (s *Store) snapshotForRule(meta queryMeta) queryMeta {
+	rv := reflect.ValueOf(meta)
+	if rv.Kind() != reflect.Pointer {
+		return meta
+	}
+
+	snapshot := reflect.New(rv.Elem().Type())
+	snapshot.Elem().Set(rv.Elem())
+
+	return snapshot.Interface().(queryMeta)
 }

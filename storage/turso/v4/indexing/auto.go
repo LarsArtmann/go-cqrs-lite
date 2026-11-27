@@ -20,14 +20,15 @@ func WithAutoAnalyze() AutoIndexerOption {
 }
 
 // WithDryRun prevents any DDL execution. DDL statements are collected
-// and returned by ApplyCQRSIndexes (via a callback) instead of being
-// executed. Useful for testing and review.
+// and returned by LastDDL instead of being executed. Useful for testing
+// and review.
 func WithDryRun() AutoIndexerOption {
 	return func(a *AutoIndexer) { a.dryRun = true }
 }
 
-// LastDDL returns the DDL statements that would have been executed
-// by the most recent Apply* call. Only populated when WithDryRun is set.
+// LastDDL returns the DDL statements that were handed to the auto-indexer by
+// Apply*, ApplyCQRSIndexes and Drop calls so far. With WithDryRun set these
+// statements were not executed.
 func (a *AutoIndexer) LastDDL() []string {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
@@ -49,6 +50,7 @@ type AutoIndexer struct {
 	dryRun      bool
 	lastDDL     []string
 	hooksConfig hooks
+	analyzing   bool
 }
 
 // NewAutoIndexer creates an auto-indexer for the given database.
@@ -266,6 +268,9 @@ func (a *AutoIndexer) Drop(ctx context.Context, indexes ...Index) error {
 		}
 
 		ddl := idx.DropDDL()
+		if a.recordDDL(ddl) {
+			return nil
+		}
 
 		_, err := a.db.ExecContext(ctx, ddl)
 		if err != nil {
@@ -298,15 +303,7 @@ func (a *AutoIndexer) createIndex(ctx context.Context, idx Index) error {
 	}
 
 	ddl := idx.DDL()
-
-	a.mu.Lock()
-	a.lastDDL = append(a.lastDDL, ddl)
-	dryRun := a.dryRun
-	a.mu.Unlock()
-
-	if dryRun {
-		a.hooksConfig.fireAfterCreate(ctx, idx, a)
-
+	if a.recordDDL(ddl) {
 		return nil
 	}
 
@@ -322,6 +319,18 @@ func (a *AutoIndexer) createIndex(ctx context.Context, idx Index) error {
 	a.hooksConfig.fireAfterCreate(ctx, idx, a)
 
 	return nil
+}
+
+// recordDDL remembers a statement for LastDDL and reports whether the
+// auto-indexer is in dry-run mode, in which case the caller must not execute
+// it nor fire the after-hook: nothing was created or dropped.
+func (a *AutoIndexer) recordDDL(ddl string) bool {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	a.lastDDL = append(a.lastDDL, ddl)
+
+	return a.dryRun
 }
 
 // isIndexAlreadyExists reports whether err is the "index already exists"

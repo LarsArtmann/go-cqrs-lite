@@ -20,7 +20,11 @@ import (
 //	    ),
 //	)
 //
-// The hook is a no-op if the context has no version information.
+// The hook runs once per index creation and never starts a nested analysis
+// of its own: while an analysis is running, the hooks it triggers do nothing
+// and the remaining indexes are created by the running analysis. The hook is
+// not fired in dry-run mode, where nothing is created, and does nothing while
+// the auto-indexer is disabled.
 func SchemaChangeHook() Hook {
 	return func(ctx context.Context, hctx HookContext) error {
 		return analyzeAfterSchemaChange(ctx, hctx.AutoIndexer)
@@ -28,9 +32,10 @@ func SchemaChangeHook() Hook {
 }
 
 func analyzeAfterSchemaChange(ctx context.Context, indexer *AutoIndexer) error {
-	if indexer == nil {
+	if indexer == nil || !indexer.beginAnalysis() {
 		return nil
 	}
+	defer indexer.endAnalysis()
 
 	if !indexer.IsEnabled() {
 		return nil
@@ -47,6 +52,28 @@ func analyzeAfterSchemaChange(ctx context.Context, indexer *AutoIndexer) error {
 	}
 
 	return indexer.Apply(ctx, recs)
+}
+
+// beginAnalysis reports whether the caller may run a schema-change analysis.
+// It is false while another one is in progress on this auto-indexer, which is
+// what stops the after-create hook from recursing into Apply.
+func (a *AutoIndexer) beginAnalysis() bool {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	if a.analyzing {
+		return false
+	}
+	a.analyzing = true
+
+	return true
+}
+
+func (a *AutoIndexer) endAnalysis() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	a.analyzing = false
 }
 
 // MigrateWithIndexing runs a schema migration (via the provided function)

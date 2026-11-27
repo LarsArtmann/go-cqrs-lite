@@ -12,12 +12,12 @@ func TestParseStat1Rows(t *testing.T) {
 		stat string
 		want int64
 	}{
-		{name: "simple", stat: "rows=12345", want: 12345},
-		{name: "with_extra_fields", stat: "rows=999 width=3 height=4", want: 999},
-		{name: "zero", stat: "rows=0", want: 0},
-		{name: "missing_prefix", stat: "width=3 height=4", want: 0},
+		{name: "simple", stat: "12345", want: 12345},
+		{name: "with_equality_columns", stat: "999 10 1", want: 999},
+		{name: "zero", stat: "0", want: 0},
+		{name: "non_numeric", stat: "width height", want: 0},
 		{name: "empty", stat: "", want: 0},
-		{name: "negative_value_not_parsed", stat: "rows=-1 width=2", want: -1},
+		{name: "not_a_number", stat: "lots 10", want: 0},
 	}
 
 	for _, tt := range tests {

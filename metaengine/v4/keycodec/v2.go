@@ -5,10 +5,12 @@ import "fmt"
 // The v2 key family: same shapes as v1 with an "2"-suffixed family tag and
 // ESCAPED user segments (Escape). Escaping makes every join injective — no
 // segment content can forge a separator, so ("a", "b\x00c") and ("a\x00b",
-// "c") now produce distinct keys in different families. The v1 builders and
-// their byte ranges stay untouched so data written before the v2 adoption
-// remains readable for the dual-read window (one release, per the plan's
-// G3 drop gate); new writes go to v2 ranges only.
+// "c") produce distinct keys in different families.
+//
+// STATUS: no engine calls these builders yet. Engines still build v1 keys,
+// where the separator-injection collision above is live, and nothing reads
+// v2 ranges. The engine adoption (TODO_LIST A9 migration wave) is pending;
+// until it lands these helpers are for forward-looking tests and tooling.
 
 // MapKeyV2 returns the full v2 key for a (collection, key) pair.
 func MapKeyV2(col, key string) []byte {

@@ -110,21 +110,26 @@ type bareEngine struct{ metaengine.Engine }
 func TestClaimConformance_ProbesReportAbsence(t *testing.T) {
 	t.Parallel()
 
+	// Embedding the Engine INTERFACE promotes only the interface's declared
+	// methods, not the extra methods of the wrapped memory engine, so
+	// bareEngine really lacks the claim and dedup methods.
 	eng := bareEngine{metaengine.NewMemoryEngine()}
 
-	// Wrap in a type that hides the promoted methods? No: embedding still
-	// promotes. The honest probe target is an engine that truly lacks the
-	// methods — the memory engine WITH wiring satisfies them (above), so we
-	// assert the probe's false path via a nil-capped view instead.
+	// The wrappee has the capabilities, so a false probe below is the
+	// wrapper's doing and not the memory engine's.
 	if !metaengine.SupportsDueClaims(metaengine.NewMemoryEngine()) {
-		t.Fatal("memory engine satisfies DueClaimer after wiring")
+		t.Fatal("memory engine must satisfy DueClaimer")
 	}
 
 	if !metaengine.SupportsDedup(metaengine.NewMemoryEngine()) {
-		t.Fatal("memory engine satisfies DedupStore after wiring")
+		t.Fatal("memory engine must satisfy DedupStore")
 	}
 
 	if metaengine.SupportsDueClaims(eng) {
-		t.Fatal("embedding promoted the capability to the wrapper unexpectedly")
+		t.Fatal("probe reported DueClaimer for an engine that lacks the methods")
+	}
+
+	if metaengine.SupportsDedup(eng) {
+		t.Fatal("probe reported DedupStore for an engine that lacks the methods")
 	}
 }

@@ -87,7 +87,7 @@ func sweepHandler(ctx context.Context, _ *appConfig, flags sweepFlags) error {
 // plan validates the sweep flags on top of the shared ones and resolves the
 // parameter and its values.
 func (f sweepFlags) plan() (benchPlan, sweepParam, []int, error) {
-	plan, baseErr := f.benchFlags.plan()
+	plan, baseErr := f.BenchFlags.plan()
 
 	var errs []error
 

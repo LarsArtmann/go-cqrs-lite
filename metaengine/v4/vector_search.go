@@ -244,42 +244,50 @@ func euclideanDistance(a, b []float32) float32 {
 // using a simple TF-IDF scoring. Suitable for small collections or testing.
 type MemorySearchIndex struct {
 	mu   sync.RWMutex
-	docs map[string]string // key → content
+	docs map[string]map[string]string // collection → document ID → content
 }
 
 // NewMemorySearchIndex creates a brute-force search index.
 func NewMemorySearchIndex() *MemorySearchIndex {
-	return &MemorySearchIndex{docs: make(map[string]string)}
+	return &MemorySearchIndex{docs: make(map[string]map[string]string)}
 }
 
-// Insert adds a document to the search index.
-func (m *MemorySearchIndex) Insert(_ context.Context, _ string, doc IndexedText) error {
+// Insert adds a document to the search index of the given collection.
+// Collections are independent: the same document ID may exist in each.
+func (m *MemorySearchIndex) Insert(_ context.Context, collection string, doc IndexedText) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	m.docs[doc.ID] = doc.Content
+	collectionDocs, ok := m.docs[collection]
+	if !ok {
+		collectionDocs = make(map[string]string)
+		m.docs[collection] = collectionDocs
+	}
+
+	collectionDocs[doc.ID] = doc.Content
 
 	return nil
 }
 
-// Query returns documents matching the full-text query.
+// Query returns documents of the given collection that match the full-text
+// query. A collection without documents yields no results.
 func (m *MemorySearchIndex) Query(
 	_ context.Context,
-	_, query string,
+	collection, query string,
 	limit int,
 ) ([]SearchResult, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	return m.queryLocked(query, limit), nil
+	return m.queryLocked(collection, query, limit), nil
 }
 
-// queryLocked scans the index. Caller MUST hold m.mu (RLock suffices).
-func (m *MemorySearchIndex) queryLocked(query string, limit int) []SearchResult {
+// queryLocked scans one collection. Caller MUST hold m.mu (RLock suffices).
+func (m *MemorySearchIndex) queryLocked(collection, query string, limit int) []SearchResult {
 	queryTerms := tokenize(query)
 	var results []SearchResult
 
-	for id, content := range m.docs {
+	for id, content := range m.docs[collection] {
 		contentTerms := tokenize(content)
 		score := tfidfScore(queryTerms, contentTerms)
 		if score > 0 {
