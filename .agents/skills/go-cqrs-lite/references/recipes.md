@@ -1162,10 +1162,11 @@ A reader created per request (the HTTP-handler shape) opts in per call instead:
 v4.21.0+) attaches the cache to that scan, and an explicit
 `metaengine.WithPrefetch(nil)` turns caching off for one call even when the
 reader carries a default. Cache keys are SHAPE-qualified — collection + filters
-+ sort + cursor — so a page cached for one filter/sort is never served to a
-scan of another shape. `cache.Len()` reports how many pages are cached; the
-cache only evicts on `Clear()`, so one cache per pagination walk is the
-lifecycle.
+
+- sort + cursor — so a page cached for one filter/sort is never served to a
+  scan of another shape. `cache.Len()` reports how many pages are cached; the
+  cache only evicts on `Clear()`, so one cache per pagination walk is the
+  lifecycle.
 
 ### 2.18 Flight Recorder — Capture Trace on Slow/Error (flightrecorder + middleware)
 
@@ -2608,8 +2609,8 @@ engines:
     driver: sqlite
     dsn: "file:app.db"
     cell_versioning:
-      max_versions: 10      # keep the newest 10 versions per cell
-      max_age: 720h         # drop versions older than 30 days ("0s" = unlimited)
+      max_versions: 10 # keep the newest 10 versions per cell
+      max_age: 720h # drop versions older than 30 days ("0s" = unlimited)
 ```
 
 Direct as-of reads work on any versioned engine (BigTable is native — its
@@ -2874,8 +2875,8 @@ walkthrough is `example/mesh-demo`.
 
 ### 2.42 Request Correlation — RequestScope Enricher (event + decider)
 
-Causation answers *which command*, the actor answers *who*, the request scope answers *which
-request*. HTTP bridges (net/http handlers, cqrs-htmx-style apps) store the correlation fields
+Causation answers _which command_, the actor answers _who_, the request scope answers _which
+request_. HTTP bridges (net/http handlers, cqrs-htmx-style apps) store the correlation fields
 once at the edge via `event.WithRequestScope`; the enricher propagates them onto every event
 the decider saves. Zero-valued fields are skipped — absent values never overwrite present
 metadata — and the enricher returns nil when no scope is set, so it composes cleanly:
@@ -3302,7 +3303,6 @@ sc.When(followCmd(t, "alice", "alice")).
 Behavior-verified reference: the graph-native BDD suite in
 [`example/graph-native/scenario_test.go`](../../../../example/graph-native/scenario_test.go).
 
-
 ### 2.45 Chaos Journal & SSE Stream Assertions (systemscenario)
 
 Two harness legs for real-world conditions: prove invariants hold when the
@@ -3426,15 +3426,15 @@ straight into the planner. Copy the ~60-line helper below into your app once
 (a `package httpx` next to your handlers); every query endpoint after that is
 one `mux.Handle` line.
 
-| Job | Library | What you get |
-| --- | --- | --- |
-| Error → status + safe body | `go-error-family` | `Family.HTTPStatus()` (Rejection→400, Conflict→409, Transient→503, …); `HTTPHandler` writes a body that never leaks the raw error |
-| Cache validation | `go-etag/server` | strong content-hash `ETag`; `If-None-Match` → `304` and the body bytes are never re-sent |
-| Phase timing | `httputil/server_timing` | `Server-Timing: query;dur=…` when the deployment opts in, visible in browser devtools |
-| Deterministic bytes | `go-codec` | stable encode → stable ETag; JSON or CBOR by constructor argument |
-| Panic containment | `httputil` | `Recovery` turns handler panics into logged `500`s — never a dropped connection |
-| Body ceiling | `httputil` | `MaxBodySize` caps request bodies; the oversize read surfaces as `*http.MaxBytesError` → `413` |
-| Liveness/readiness | `httputil` | `HealthHandler` / `ReadyHandlerWithProbe` on `/health` and `/health/ready` (probe = `system.HealthCheck`: engines + projections) |
+| Job                        | Library                  | What you get                                                                                                                      |
+| -------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| Error → status + safe body | `go-error-family`        | `Family.HTTPStatus()` (Rejection→400, Conflict→409, Transient→503, …); `HTTPHandler` writes a body that never leaks the raw error |
+| Cache validation           | `go-etag/server`         | strong content-hash `ETag`; `If-None-Match` → `304` and the body bytes are never re-sent                                          |
+| Phase timing               | `httputil/server_timing` | `Server-Timing: query;dur=…` when the deployment opts in, visible in browser devtools                                             |
+| Deterministic bytes        | `go-codec`               | stable encode → stable ETag; JSON or CBOR by constructor argument                                                                 |
+| Panic containment          | `httputil`               | `Recovery` turns handler panics into logged `500`s — never a dropped connection                                                   |
+| Body ceiling               | `httputil`               | `MaxBodySize` caps request bodies; the oversize read surfaces as `*http.MaxBytesError` → `413`                                    |
+| Liveness/readiness         | `httputil`               | `HealthHandler` / `ReadyHandlerWithProbe` on `/health` and `/health/ready` (probe = `system.HealthCheck`: engines + projections)  |
 
 Declare the query types, register the handler, bind the route:
 
@@ -3846,7 +3846,6 @@ Go scan with identical observable behavior. The replay caveat of §Bounded
 collections carries over: reset + replay restores full rows, so re-run
 `EnforceCaps` after a rebuild.
 
-
 ### 2.51 The Deployment Ladder — same preset from Go, CUE, or NixOS (`system.Standard`, ADR-0165)
 
 Declare engines ONLY; `Standard` fills the canonical three-instance topology:
@@ -3898,3 +3897,66 @@ are pinned to one shared instance-triple fixture
 (`system/testdata/standard-instance-triple.json`) asserted by the Go suite,
 the `#check-cue-config` gate, and the `cqrs-nixos-eval` flake check — they
 cannot drift apart. Runnable whole app: `example/standard-topology`.
+
+### 2.52 Search: fields declared once, one call (`search/v4`)
+
+A search box is not a `strings.Contains` loop. Declare the searchable fields
+of a record type once, with weights, and call `Index.Search`. The same call
+serves substring, full-text, vector and hybrid search; `Result.Via` says which
+kind ran. An operator who configures an embedder turns semantic search on
+without a line of product code changing (ADR-0169).
+
+```go
+type Note struct {
+	ID    string
+	Title string
+	Body  string
+}
+
+notes := search.Slice[Note]{ // a Source over records in memory
+	Items:    allNotes,
+	Identify: func(n Note) string { return n.ID },
+}
+
+notesIndex, err := search.New(search.Spec[Note]{
+	Fields: []search.Field[Note]{
+		{Name: "title", Weight: 1.0, Value: func(n Note) string { return n.Title }},
+		{Name: "body", Weight: 0.2, Value: func(n Note) string { return n.Body }},
+	},
+	Keys: []string{"status"}, // status:open is the product's token, never searched as text
+}, search.NoEngine, notes) // no engine: the lexical scan
+if err != nil {
+	return err
+}
+
+result, err := notesIndex.Search(ctx, search.Request{
+	Query:   r.URL.Query().Get("q"), // "" is the unfiltered list, never an error
+	Filters: r.URL.Query(),
+})
+if err != nil {
+	return err
+}
+fmt.Println(result.Via, result.TotalCount, result.Truncated, result.Degraded)
+for _, hit := range result.Data {
+	fmt.Println(hit.ID, hit.Score, hit.Snippet) // Snippet is []search.Segment: data, never HTML
+}
+```
+
+What the contract holds:
+
+- **The ladder.** `ModeAuto` (the zero value) picks the best kind the
+  deployment offers: scan, full-text, vector, hybrid. `Via` reports it. An
+  explicit `ModeFullText`, `ModeVector` or `ModeHybrid` is strict: it errors
+  with `search.ErrModeUnavailable` instead of stepping down, so a test cannot
+  pass on lexical results when it meant the semantic path.
+- **One ranking rule.** every term must match; exact beats word prefix beats
+  substring; each times the field weight. The same rule runs in the browser
+  (`search.BuildStaticIndex` writes compact JSON for the client matcher).
+- **Operators supply embeddings.** `search.NoEngine` and a nil embedder
+  mean lexical only, a complete product. Nothing leaves the machine.
+- **SQL is not hand-escaped.** `search.LikePattern` and `search.FTS5Query`
+  exist for stores that are not engines yet.
+
+Deprecated path: `kv.OpLike` with a hand-built `%needle%` pattern
+(readmodels, SQL-backed views). It escapes nothing, folds case for ASCII only
+and ranks nothing. Move to `search/v4`.

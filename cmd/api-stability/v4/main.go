@@ -149,6 +149,7 @@ var modules = []string{
 	"storage/turso/v4",
 
 	"listing/v4",
+	"search/v4",
 
 	"watermill/v4",
 

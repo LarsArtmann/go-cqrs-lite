@@ -283,6 +283,13 @@ mapper.Indexes = []storage.IndexSpec{
 }
 ```
 
+> **Deprecated for search (2026-11-28, ADR-0169).** A hand-built `OpLike`
+> pattern escapes nothing, folds case for ASCII only and ranks nothing. For
+> free-text search declare the fields once and call `search/v4`
+> ([recipes §2.52](recipes.md#252-search-fields-declared-once-one-call-searchv4));
+> `search.LikePattern` escapes a literal for the stores that stay on LIKE.
+> `OpLike` itself is unchanged for closed-set filters.
+
 #### Canonical projection pattern: CatchUpSubscriber + Materialize
 
 For ordered, durable projections, use `CatchUpSubscriber` — NOT the Watermill

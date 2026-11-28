@@ -41,6 +41,19 @@
 | Publisher / Subscriber   | ISP split: `Publisher.Publish(ctx, cmds...)`, `Subscriber.Subscribe(type, handler)`                                                                | ✅     |
 | PublishMiddleware        | `PublishMiddleware` wraps the publish path for cross-cutting concerns (signing, tracing)                                                           | ✅     |
 
+### Search 🧪 PARTIALLY_DONE
+
+> `import "github.com/larsartmann/go-cqrs-lite/search/v4"`
+
+| Feature                    | Description                                                                                                                   | Status |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Search contract            | `Spec`, `Field` (weights, Private), `New`, `Index.Search`, `Request`, `Result` with `Via`, `Truncated`, `Degraded` (ADR-0169) | ✅     |
+| Auto ladder                | `ModeAuto` picks scan, full-text, vector or hybrid by written rules; explicit modes are strict (`ErrModeUnavailable`)         | ✅     |
+| Lexical scan               | `Score`: every term must match, exact beats word prefix beats substring, times field weight; `RankHits` ties by identifier    | ✅     |
+| Query helpers              | `Tokenize` (operator keys), `LikePattern`/`EscapeLike`, `FTS5Query`, `Snippet`/`SnippetTerms` (typed segments, never HTML)    | ✅     |
+| Static index               | `BuildStaticIndex`, `WriteFile`, `LoadStaticIndex`; conformance corpus in `search/v4/testdata/conformance.json`               | ✅     |
+| Full-text and vector rungs | Executors for the tiers above the scan (metaengine FTS5/tsvector, embeddings on `VectorBackend`)                              | 🧪     |
+
 ### Query Dispatcher ✅ FULLY_FUNCTIONAL
 
 > `import "github.com/larsartmann/go-cqrs-lite/query/v4"`

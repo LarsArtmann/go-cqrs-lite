@@ -1,6 +1,6 @@
 package main
 
-// Recipe catalog, part B4: recipes.md §2.47–§2.51 (the tail of section 2,
+// Recipe catalog, part B4: recipes.md §2.47–§2.52 (the tail of section 2,
 // split out of part B3 to keep files under the 350-line file cap).
 
 var recipeCatalogB4 = map[string]recipeSpec{
@@ -139,6 +139,18 @@ var recipeCatalogB4 = map[string]recipeSpec{
 		preamble: "var ctx = context.Background()\n" +
 			"var domain system.DomainConfig\n",
 		trailers: "_ = sys\n_ = err",
+	},
+	"### 2.52 Search: fields declared once, one call (`search/v4`) #1": {
+		imports: []string{
+			`"context"`,
+			`"fmt"`,
+			`"net/http"`,
+			`"github.com/larsartmann/go-cqrs-lite/search/v4"`,
+		},
+		preamble: "var ctx = context.Background()\n" +
+			"var r *http.Request\n" +
+			"var allNotes []Note\n",
+		errFunc: true,
 	},
 }
 

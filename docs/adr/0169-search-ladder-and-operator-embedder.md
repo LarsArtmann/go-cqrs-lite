@@ -33,19 +33,19 @@ operator.
    layer and adapts to the contract (ADR-0123 keeps `system.New` the composition root). A `/v5`
    twin follows ADR-0152's copy-forward rule when the v5 cut lands.
 
-2. **The vocabulary has three words.** A *Filter* narrows by closed-set facets. A *Search* turns
-   free text into ranked hits. A *Pick* chooses or navigates. They combine and are never
+2. **The vocabulary has three words.** A _Filter_ narrows by closed-set facets. A _Search_ turns
+   free text into ranked hits. A _Pick_ chooses or navigates. They combine and are never
    conflated.
 
 3. **Search is a ladder, and every result says which rung ran.**
 
-   | Tier | Kind | Needs | Auto stops here when |
-   |---|---|---|---|
-   | 0 | Client, lexical | a static index or rendered rows | the box was given an index |
-   | 1 | Scan, lexical | nothing | the engine has no full-text index |
-   | 2 | Full-text | FTS5, tsvector or an inverted index | no embedder, or the query is lexical by rule |
-   | 3 | Vector | a vector index and an embedder | an embedder, but no full-text index |
-   | 4 | Hybrid | tiers 2 and 3, fused by rank | nothing: this is the top |
+   | Tier | Kind            | Needs                               | Auto stops here when                         |
+   | ---- | --------------- | ----------------------------------- | -------------------------------------------- |
+   | 0    | Client, lexical | a static index or rendered rows     | the box was given an index                   |
+   | 1    | Scan, lexical   | nothing                             | the engine has no full-text index            |
+   | 2    | Full-text       | FTS5, tsvector or an inverted index | no embedder, or the query is lexical by rule |
+   | 3    | Vector          | a vector index and an embedder      | an embedder, but no full-text index          |
+   | 4    | Hybrid          | tiers 2 and 3, fused by rank        | nothing: this is the top                     |
 
    Facets combine with every tier. `Result.Via` names the tier that ran.
 

@@ -1,0 +1,1 @@
+{"version":1,"fields":[{"name":"title","weight":1},{"name":"body","weight":0.2}],"items":[{"id":"n1","fields":{"body":"The March invoice","title":"Big invoice"}},{"id":"n2","fields":{"title":"Holiday"}}]}

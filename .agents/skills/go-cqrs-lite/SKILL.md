@@ -46,7 +46,7 @@ Full walkthrough: [`core.md` → 60-second quickstart](references/core.md#60-sec
 
 > **Stability:** `system` is the fleet's production composition root — promoted out of EXPERIMENTAL 2026-11-03 (owner decision; `FEATURES.md` updated: 38 direct fleet consumers per the 2026-10-24 census, full suite green incl. `-race`, the deriver-bus deadlock fix shipped 2026-10-10 via `deriver.WithAsyncDispatch` / ADR-0154). The module code and README never carried an experimental marker. The v5 cut renames some constructors (see [`faq.md`](references/faq.md)) — `cmd/cqrs-upgrade` makes the migration mechanical. `metaengine`'s planner surface is stable; its per-engine modules were promoted to Stable 2026-11-15 (owner ruling 2026-11-03, T27 evidence table in `FEATURES.md` — 42 direct + 39 indirect fleet consumers for `metaengine/v4` per the 2026-11-15 census; breaking changes wait for v5).
 
-- [`recipes.md`](references/recipes.md) — event sourcing, persistence, snapshots, signing, encryption, OTel, system-level BDD tests (§2.43), binding queries to HTTP endpoints with ETag/Server-Timing (§2.47)
+- [`recipes.md`](references/recipes.md) — event sourcing, persistence, snapshots, signing, encryption, OTel, system-level BDD tests (§2.43), search with declared fields (§2.52, `search/v4`), binding queries to HTTP endpoints with ETag/Server-Timing (§2.47)
 - [`readmodels.md`](references/readmodels.md) — projections, SQL views, tier selection
 - [`modules.md`](references/modules.md) — all modules: imports + one-liners
 - [`advanced.md`](references/advanced.md) — tombstone, watermill, gRPC, projectionhost, scheduling, graph, SSE

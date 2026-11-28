@@ -1,0 +1,357 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "name": "exact beats word prefix beats substring",
+      "query": "inv",
+      "fields": [
+        {
+          "name": "title",
+          "weight": 1
+        },
+        {
+          "name": "body",
+          "weight": 0.2
+        }
+      ],
+      "docs": [
+        {
+          "id": "sub",
+          "fields": {
+            "title": "reinvented"
+          }
+        },
+        {
+          "id": "pre",
+          "fields": {
+            "title": "Invoice March"
+          }
+        },
+        {
+          "id": "exact",
+          "fields": {
+            "title": "Inv"
+          }
+        }
+      ],
+      "want": [
+        "exact",
+        "pre",
+        "sub"
+      ]
+    },
+    {
+      "name": "a title match outranks a body match",
+      "query": "invoice",
+      "fields": [
+        {
+          "name": "title",
+          "weight": 1
+        },
+        {
+          "name": "body",
+          "weight": 0.2
+        }
+      ],
+      "docs": [
+        {
+          "id": "body",
+          "fields": {
+            "body": "about the invoice",
+            "title": "Standup"
+          }
+        },
+        {
+          "id": "title",
+          "fields": {
+            "body": "nothing",
+            "title": "Invoice"
+          }
+        }
+      ],
+      "want": [
+        "title",
+        "body"
+      ]
+    },
+    {
+      "name": "every term must match",
+      "query": "big invoice",
+      "fields": [
+        {
+          "name": "title",
+          "weight": 1
+        },
+        {
+          "name": "body",
+          "weight": 0.2
+        }
+      ],
+      "docs": [
+        {
+          "id": "both",
+          "fields": {
+            "title": "Big Invoice"
+          }
+        },
+        {
+          "id": "big-only",
+          "fields": {
+            "title": "Big"
+          }
+        },
+        {
+          "id": "invoice-only",
+          "fields": {
+            "title": "Invoice"
+          }
+        }
+      ],
+      "want": [
+        "both"
+      ]
+    },
+    {
+      "name": "a term may live in another field",
+      "query": "big invoice",
+      "fields": [
+        {
+          "name": "title",
+          "weight": 1
+        },
+        {
+          "name": "body",
+          "weight": 0.2
+        }
+      ],
+      "docs": [
+        {
+          "id": "split",
+          "fields": {
+            "body": "the invoice",
+            "title": "Big"
+          }
+        },
+        {
+          "id": "none",
+          "fields": {
+            "title": "Small note"
+          }
+        }
+      ],
+      "want": [
+        "split"
+      ]
+    },
+    {
+      "name": "case folds including non-ascii, ties by identifier",
+      "query": "über",
+      "fields": [
+        {
+          "name": "title",
+          "weight": 1
+        },
+        {
+          "name": "body",
+          "weight": 0.2
+        }
+      ],
+      "docs": [
+        {
+          "id": "upper",
+          "fields": {
+            "title": "ÜBERSCHRIFT"
+          }
+        },
+        {
+          "id": "lower",
+          "fields": {
+            "title": "über allem"
+          }
+        }
+      ],
+      "want": [
+        "lower",
+        "upper"
+      ]
+    },
+    {
+      "name": "ties break by identifier",
+      "query": "note",
+      "fields": [
+        {
+          "name": "title",
+          "weight": 1
+        },
+        {
+          "name": "body",
+          "weight": 0.2
+        }
+      ],
+      "docs": [
+        {
+          "id": "c",
+          "fields": {
+            "title": "Note"
+          }
+        },
+        {
+          "id": "a",
+          "fields": {
+            "title": "Note"
+          }
+        },
+        {
+          "id": "b",
+          "fields": {
+            "title": "note"
+          }
+        }
+      ],
+      "want": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    {
+      "name": "the sum over terms orders partial prominence",
+      "query": "march invoice",
+      "fields": [
+        {
+          "name": "title",
+          "weight": 1
+        },
+        {
+          "name": "body",
+          "weight": 0.2
+        }
+      ],
+      "docs": [
+        {
+          "id": "title-once",
+          "fields": {
+            "body": "an invoice",
+            "title": "March"
+          }
+        },
+        {
+          "id": "both-words",
+          "fields": {
+            "body": "",
+            "title": "March invoice"
+          }
+        },
+        {
+          "id": "body-twice",
+          "fields": {
+            "body": "March invoice",
+            "title": "Standup"
+          }
+        }
+      ],
+      "want": [
+        "both-words",
+        "title-once",
+        "body-twice"
+      ]
+    },
+    {
+      "name": "polish and german text match on whole words",
+      "query": "rechnung",
+      "fields": [
+        {
+          "name": "title",
+          "weight": 1
+        },
+        {
+          "name": "body",
+          "weight": 0.2
+        }
+      ],
+      "docs": [
+        {
+          "id": "de",
+          "fields": {
+            "body": "Zażółć gęślą jaźń",
+            "title": "Rechnung März"
+          }
+        },
+        {
+          "id": "pl",
+          "fields": {
+            "body": "Rechnung",
+            "title": "Faktura"
+          }
+        }
+      ],
+      "want": [
+        "de",
+        "pl"
+      ]
+    },
+    {
+      "name": "an identifier is matched literally",
+      "query": "KW1/2024/0042",
+      "fields": [
+        {
+          "name": "title",
+          "weight": 1
+        },
+        {
+          "name": "body",
+          "weight": 0.2
+        }
+      ],
+      "docs": [
+        {
+          "id": "hit",
+          "fields": {
+            "title": "Deed KW1/2024/0042"
+          }
+        },
+        {
+          "id": "miss",
+          "fields": {
+            "title": "Deed KW1/2024/0043"
+          }
+        }
+      ],
+      "want": [
+        "hit"
+      ]
+    },
+    {
+      "name": "an empty query keeps the document order",
+      "query": "",
+      "fields": [
+        {
+          "name": "title",
+          "weight": 1
+        },
+        {
+          "name": "body",
+          "weight": 0.2
+        }
+      ],
+      "docs": [
+        {
+          "id": "z",
+          "fields": {
+            "title": "Last"
+          }
+        },
+        {
+          "id": "a",
+          "fields": {
+            "title": "First"
+          }
+        }
+      ],
+      "want": [
+        "z",
+        "a"
+      ]
+    }
+  ]
+}

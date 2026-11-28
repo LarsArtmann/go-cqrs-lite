@@ -26,6 +26,10 @@ LAYER["commandlifecycle/v4"]=2
 LAYER["commandlifecycle/projections/v4"]=3
 LAYER["listing/v4"]=3
 LAYER["decider/v4"]=3
+# search/v4: the search CONTRACT (ADR-0169) — spec, request, ranking rule,
+# query helpers and snippet segments. Depends on query/v4 (pagination) only.
+# system adapts to it; it never imports system.
+LAYER["search/v4"]=3
 LAYER["graph/v4"]=3
 LAYER["scenario/v4"]=3
 LAYER["projectionhost/v4"]=3
@@ -299,6 +303,8 @@ DEP_BUDGET["middleware/v4"]=13
 # bootstrap to the shared engine; added 2026-09-22 without its budget bump).
 DEP_BUDGET["storage/v4"]=14
 DEP_BUDGET["listing/v4"]=6
+# search/v4: 2 = query/v4 + go-error-family (ADR-0169 contract budget).
+DEP_BUDGET["search/v4"]=2
 DEP_BUDGET["watermill/v4"]=9
 # codec is required for CBORToJSONTransform (SSE CBOR->JSON adapter composes
 # the codec.TranscodeToJSON primitive — ADR-0052, deletes per-consumer dupes).

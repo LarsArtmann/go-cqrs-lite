@@ -3,6 +3,14 @@
 Practical recipes for common metaengine patterns. Each recipe is copy-paste
 ready and includes the query declaration, fold handlers, and reader usage.
 
+## Search
+
+A text search is not a scan with `strings.Contains`. Declare the searchable
+fields once and call `search/v4`; the recipe is
+[recipes §2.52](../../.agents/skills/go-cqrs-lite/references/recipes.md#252-search-fields-declared-once-one-call-searchv4)
+(ADR-0169). Engines that implement `SearchBackend` serve the full-text rung;
+this release of the search contract runs the lexical scan over any `Source`.
+
 ## Payload Encodings
 
 Events reach the store in one of two ways:

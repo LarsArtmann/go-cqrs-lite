@@ -287,6 +287,7 @@
             "encryption/v4"
             "kv/v4"
             "listing/v4"
+            "search/v4"
             "otel/v4"
             "otel/otlp/v4"
             "testutil/v4"

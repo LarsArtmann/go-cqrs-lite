@@ -202,6 +202,14 @@ func buildDefaultCatalog() []ModuleEntry {
 			Suggestion:  "Stream listing and tombstone detection",
 		},
 		{
+			Key:         "search",
+			DisplayName: "Search",
+			Category:    CategoryProjections,
+			ImportHints: []string{"go-cqrs-lite/search"},
+			Description: "Search contract: field spec with weights, ranked hits, Auto ladder with Via reporting (ADR-0169)",
+			Suggestion:  "One call for full-text, fuzzy, vector and client-side search",
+		},
+		{
 			Key:         "metaengine",
 			DisplayName: "Metaengine",
 			Category:    CategoryProjections,
