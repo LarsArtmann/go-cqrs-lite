@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/snapshot/v4
 go 1.27
 
 require (
-	github.com/gkampitakis/go-snaps v0.5.25
+	github.com/gkampitakis/go-snaps v0.5.26
 	github.com/larsartmann/go-codec v0.3.4
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.3
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
@@ -20,7 +20,7 @@ require (
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/larsartmann/go-branded-id v0.7.1 // indirect
+	github.com/larsartmann/go-branded-id v0.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
@@ -34,4 +34,7 @@ require (
 	github.com/tidwall/pretty v1.2.2 // indirect
 	github.com/tidwall/sjson v1.2.6 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
+	golang.org/x/net v0.63.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
+	golang.org/x/tools v0.53.0 // indirect
 )

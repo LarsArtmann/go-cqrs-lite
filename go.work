@@ -70,12 +70,12 @@ use (
 	./queue/v4
 	./record/v4
 	./scenario/v4
-	./search/v4
 	./scheduling/engine/v4
 	./scheduling/sqlstore/v4
 	./scheduling/v4
 	./schema/v4
 	./scratch/counterkey
+	./search/v4
 	./signing/v4
 	./snapshot/v4
 	./stack/bbolt/v4
