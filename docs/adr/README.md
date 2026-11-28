@@ -271,5 +271,6 @@ watermill/     — Watermill protocol adapter
 | [0166](0166-one-streamref-id-struct-canonical-record-aliases.md) | One StreamRef — the id struct is canonical, record aliases it | 2026-11-08 | Proposed |
 | [0167](0167-idempotency-retirement-system-dedup-facade.md) | Retire idempotency/{kvstore,sqlstore} — dedup moves behind system over metaengine.DedupStore | 2026-11-15 | Proposed |
 | [0168](0168-cqrs-gen-derives-message-wiring.md) | cqrs-gen derives message wiring for the composition root | 2026-11-26 | Accepted |
+| [0169](0169-search-ladder-and-operator-embedder.md) | Search is a ladder of kinds, and embeddings belong to the operator | 2026-11-28 | Accepted |
 
 > **Note:** ADRs 0036, 0041, and 0138 were never assigned (gaps in numbering).
