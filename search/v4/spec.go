@@ -1,6 +1,9 @@
 package search
 
-import "strings"
+import (
+	"maps"
+	"strings"
+)
 
 // DefaultFieldWeight is the weight of a field declared with Weight 0.
 const DefaultFieldWeight = 1.0
@@ -25,6 +28,7 @@ func (f Field[T]) resolvedWeight() float64 {
 	if f.Weight == 0 {
 		return DefaultFieldWeight
 	}
+
 	return f.Weight
 }
 
@@ -56,6 +60,7 @@ func (s Spec[T]) Validate() error {
 	if len(s.Fields) == 0 {
 		return ErrNoFields
 	}
+
 	seen := make(map[string]struct{}, len(s.Fields))
 	for _, field := range s.Fields {
 		switch {
@@ -64,32 +69,30 @@ func (s Spec[T]) Validate() error {
 		case field.Weight < 0:
 			return ErrInvalidWeight
 		}
+
 		if _, dup := seen[field.Name]; dup {
 			return ErrDuplicateField
 		}
+
 		seen[field.Name] = struct{}{}
 	}
+
 	if !s.Mode.IsValid() {
 		return rejectionWith(
 			ErrModeUnavailable,
 			"the mode "+s.Mode.String()+" is not one of auto, lexical, fulltext, vector, hybrid",
 		)
 	}
+
 	if _, err := limitOrDefault(s.MaxQueryRunes, MaxQueryRunes); err != nil {
 		return err
 	}
+
 	if _, err := limitOrDefault(s.ScanLimit, DefaultScanLimit); err != nil {
 		return err
 	}
-	return nil
-}
 
-// maxQueryRunes returns the query length limit with its zero value defaulted.
-func (s Spec[T]) maxQueryRunes() int {
-	if s.MaxQueryRunes == 0 {
-		return MaxQueryRunes
-	}
-	return s.MaxQueryRunes
+	return nil
 }
 
 // scanLimit returns the scan limit with its zero value defaulted.
@@ -97,12 +100,13 @@ func (s Spec[T]) scanLimit() int {
 	if s.ScanLimit == 0 {
 		return DefaultScanLimit
 	}
+
 	return s.ScanLimit
 }
 
 // Tokens splits a query into free terms and operator tokens, keeping the
 // spec's declared [Spec.Keys]. It is [Tokenize] with the spec's keys.
-func (s Spec[T]) Tokens(query string) (terms []string, tokens map[string][]string) {
+func (s Spec[T]) Tokens(query string) ([]string, map[string][]string) {
 	return Tokenize(query, s.Keys...)
 }
 
@@ -110,12 +114,12 @@ func (s Spec[T]) Tokens(query string) (terms []string, tokens map[string][]strin
 func (s Spec[T]) clone() Spec[T] {
 	copied := s
 	copied.Fields = append([]Field[T](nil), s.Fields...)
+
 	copied.Keys = append([]string(nil), s.Keys...)
 	if s.Sorts != nil {
 		copied.Sorts = make(map[string]func(a, b T) int, len(s.Sorts))
-		for key, less := range s.Sorts {
-			copied.Sorts[key] = less
-		}
+		maps.Copy(copied.Sorts, s.Sorts)
 	}
+
 	return copied
 }

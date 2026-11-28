@@ -29,17 +29,20 @@ func SnippetTerms(text string, terms []string, radius int) []Segment {
 	if radius <= 0 {
 		radius = DefaultSnippetRadius
 	}
+
 	runes := []rune(text)
 	marked, first, matchEnd := markTerms(runes, terms)
 
 	if first < 0 {
 		end := min(len(runes), radius)
+
 		return Plain(string(runes[:snapEnd(runes, end)]))
 	}
 
 	start := snapStart(runes, max(0, first-radius))
 	end := snapEnd(runes, min(len(runes), matchEnd+radius))
 	start, end = trimEdges(runes, start, end, first)
+
 	return segmentsOf(runes, marked, start, max(start, end))
 }
 
@@ -48,9 +51,11 @@ func trimEdges(runes []rune, start, end, first int) (int, int) {
 	for start < first && isSpace(runes[start]) {
 		start++
 	}
+
 	for end > first+1 && isSpace(runes[end-1]) {
 		end--
 	}
+
 	return start, end
 }
 
@@ -63,32 +68,38 @@ func isSpace(r rune) bool {
 // returns the mark per rune, the index of the earliest marked rune (-1 when
 // none) and the index just past the marked run that starts there, so a
 // window never cuts inside a match.
-func markTerms(runes []rune, terms []string) (marked []bool, first, matchEnd int) {
-	marked = make([]bool, len(runes))
+func markTerms(runes []rune, terms []string) ([]bool, int, int) {
+	marked := make([]bool, len(runes))
 	folded := []rune(Fold(string(runes)))
-	first, matchEnd = -1, 0
+	first, matchEnd := -1, 0
+
 	for _, term := range terms {
 		needle := []rune(Fold(term))
 		if len(needle) == 0 || len(needle) > len(folded) {
 			continue
 		}
+
 		for i := 0; i+len(needle) <= len(folded); i++ {
 			if !runesEqual(folded[i:i+len(needle)], needle) {
 				continue
 			}
+
 			if first < 0 || i < first {
 				first, matchEnd = i, i+len(needle)
 			}
+
 			for j := i; j < i+len(needle); j++ {
 				marked[j] = true
 			}
 		}
 	}
+
 	if first >= 0 {
 		for matchEnd < len(marked) && marked[matchEnd] {
 			matchEnd++
 		}
 	}
+
 	return marked, first, matchEnd
 }
 
@@ -99,6 +110,7 @@ func runesEqual(a, b []rune) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -108,11 +120,13 @@ func snapStart(runes []rune, start int) int {
 	if start == 0 || isWordBoundary(runes[start-1]) {
 		return start
 	}
+
 	for i := start - 1; i > max(0, start-snipLimit); i-- {
 		if isWordBoundary(runes[i]) {
 			return i + 1
 		}
 	}
+
 	return start
 }
 
@@ -122,11 +136,13 @@ func snapEnd(runes []rune, end int) int {
 	if end >= len(runes) || end == 0 || isWordBoundary(runes[end-1]) {
 		return end
 	}
+
 	for i := end; i < min(len(runes), end+snipLimit); i++ {
 		if isWordBoundary(runes[i]) {
 			return i + 1
 		}
 	}
+
 	return end
 }
 
@@ -142,21 +158,25 @@ func isWordBoundary(r rune) bool {
 func segmentsOf(runes []rune, marked []bool, start, end int) []Segment {
 	var segments []Segment
 	if start > 0 {
-		segments = append(segments, Segment{Text: ellipsis})
+		segments = append(segments, Segment{Text: ellipsis, Marked: false})
 	}
+
 	for i := start; i < end; {
 		j := i + 1
 		for j < end && marked[j] == marked[i] {
 			j++
 		}
+
 		segments = append(segments, Segment{
 			Text:   string(runes[i:j]),
 			Marked: marked[i],
 		})
 		i = j
 	}
+
 	if end < len(runes) {
-		segments = append(segments, Segment{Text: ellipsis})
+		segments = append(segments, Segment{Text: ellipsis, Marked: false})
 	}
+
 	return segments
 }

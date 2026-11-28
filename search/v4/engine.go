@@ -6,7 +6,9 @@ import (
 	"strings"
 )
 
-// Capabilities reports which kinds of search a deployment can serve.
+// Capabilities reports which kinds of search a deployment can serve. The zero
+// value is the capability set of a deployment without a search engine: the
+// lexical scan is all it can serve.
 type Capabilities struct {
 	// FullText is true when the engine keeps a full-text index for the
 	// searched records.
@@ -14,10 +16,6 @@ type Capabilities struct {
 	// Vector is true when the engine keeps a vector index for them.
 	Vector bool
 }
-
-// None is the capability set of a deployment without a search engine: the
-// lexical scan is all it can serve.
-var None = Capabilities{}
 
 // Embedder turns text into vectors. The operator supplies it; the SDK never
 // embeds without one, so a nil embedder means lexical search only.
@@ -42,14 +40,16 @@ type Engine interface {
 	Embedder() Embedder
 }
 
-// NoEngine is the engine of a deployment that only scans. It has no
+// NoEngine returns the engine of a deployment that only scans. It has no
 // capabilities and no embedder, so [New] never needs a nil engine.
-var NoEngine Engine = noEngine{}
+func NoEngine() Engine { return noEngine{} }
 
 type noEngine struct{}
 
-func (noEngine) Capabilities() Capabilities { return None }
-func (noEngine) Embedder() Embedder         { return nil }
+func (noEngine) Capabilities() Capabilities {
+	return Capabilities{FullText: false, Vector: false}
+}
+func (noEngine) Embedder() Embedder { return nil }
 
 // Listing is one page of records from a [Source].
 type Listing[T any] struct {
@@ -94,30 +94,38 @@ func Tier(mode Mode, terms []string, caps Capabilities, hasEmbedder bool) (Via, 
 		return ViaNone, rejectionWith(ErrModeUnavailable,
 			"the mode "+mode.String()+" is not one of auto, lexical, fulltext, vector, hybrid")
 	}
+
 	if mode == ModeAuto {
 		return autoTier(terms, caps, hasEmbedder), nil
 	}
+
 	switch mode {
+	case ModeAuto:
+		return autoTier(terms, caps, hasEmbedder), nil
 	case ModeLexical:
 		if caps.FullText {
 			return ViaFullText, nil
 		}
+
 		return ViaScan, nil
 	case ModeFullText:
 		if !caps.FullText {
 			return ViaNone, modeUnavailable(mode, "no full-text index on the engine")
 		}
+
 		return ViaFullText, nil
 	case ModeVector:
 		if !caps.Vector || !hasEmbedder {
 			return ViaNone, modeUnavailable(mode, "the deployment has no vector index or no embedder")
 		}
+
 		return ViaVector, nil
 	case ModeHybrid:
 		if !caps.FullText || !caps.Vector || !hasEmbedder {
 			return ViaNone, modeUnavailable(mode,
 				"the deployment has no full-text index, no vector index or no embedder")
 		}
+
 		return ViaHybrid, nil
 	default:
 		return ViaNone, ErrModeUnavailable
@@ -130,19 +138,24 @@ func autoTier(terms []string, caps Capabilities, hasEmbedder bool) Via {
 	for _, term := range terms {
 		length += len([]rune(term))
 	}
+
 	if length < minQueryRunes {
 		return ViaNone
 	}
+
 	lexical := ViaScan
 	if caps.FullText {
 		lexical = ViaFullText
 	}
+
 	if IsIdentifierLike(strings.Join(terms, " ")) || !isProseWorthEmbedding(terms) || !hasEmbedder || !caps.Vector {
 		return lexical
 	}
+
 	if caps.FullText {
 		return ViaHybrid
 	}
+
 	return ViaVector
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/search/v4"
 )
@@ -35,15 +36,17 @@ func Example() {
 			{Name: "body", Weight: 0.2, Value: func(n Note) string { return n.Body }},
 		},
 	}
-	index, err := search.New(spec, search.NoEngine, notes)
+	index, err := search.New(spec, search.NoEngine(), notes)
 	if err != nil {
 		fmt.Println("error:", err)
+
 		return
 	}
 
 	result, err := index.Search(context.Background(), search.Request{Query: "big invoice"})
 	if err != nil {
 		fmt.Println("error:", err)
+
 		return
 	}
 	fmt.Println("via:", result.Via, "total:", result.TotalCount)
@@ -60,12 +63,16 @@ func Example() {
 // between asterisks.
 func marked(segments []search.Segment) string {
 	out := ""
+	var outSb63 strings.Builder
 	for _, segment := range segments {
 		if segment.Marked {
-			out += "*" + segment.Text + "*"
+			outSb63.WriteString("*" + segment.Text + "*")
+
 			continue
 		}
-		out += segment.Text
+		outSb63.WriteString(segment.Text)
 	}
+	out += outSb63.String()
+
 	return out
 }

@@ -15,6 +15,7 @@ func Fold(text string) string {
 	for i, r := range runes {
 		runes[i] = unicode.ToLower(r)
 	}
+
 	return string(runes)
 }
 
@@ -43,7 +44,6 @@ func fieldScore(foldedField, foldedTerm string) float64 {
 }
 
 // hasWordPrefix reports whether the term starts a word of the field: at the
-// start, or right after a character that is not a letter or digit.
 // hasWordPrefix reports whether the term starts a word of the field: at the
 // start, or right after a character that is not a letter or digit.
 func hasWordPrefix(foldedField, foldedTerm string) bool {
@@ -52,16 +52,20 @@ func hasWordPrefix(foldedField, foldedTerm string) bool {
 		if idx < 0 {
 			return false
 		}
-		at := from + idx
-		if at == 0 {
+
+		offset := from + idx
+		if offset == 0 {
 			return true
 		}
-		before, _ := utf8.DecodeLastRuneInString(foldedField[:at])
+
+		before, _ := utf8.DecodeLastRuneInString(foldedField[:offset])
 		if !unicode.IsLetter(before) && !unicode.IsDigit(before) {
 			return true
 		}
-		from = at + len(foldedTerm)
+
+		from = offset + len(foldedTerm)
 	}
+
 	return false
 }
 
@@ -72,6 +76,7 @@ func matchTerm[T any](spec Spec[T], item T, foldedTerm string) (float64, string)
 		best      float64
 		bestField string
 	)
+
 	for _, field := range spec.Fields {
 		weighted := fieldScore(Fold(field.Value(item)), foldedTerm) * field.Weight
 		if weighted > best {
@@ -79,6 +84,7 @@ func matchTerm[T any](spec Spec[T], item T, foldedTerm string) (float64, string)
 			bestField = field.Name
 		}
 	}
+
 	return best, bestField
 }
 
@@ -93,6 +99,7 @@ func matchTerm[T any](spec Spec[T], item T, foldedTerm string) (float64, string)
 // text.
 func Score[T any](spec Spec[T], req Request, item T) (float64, bool) {
 	terms, _ := spec.Tokens(req.Query)
+
 	return ScoreTerms(spec, item, terms)
 }
 
@@ -101,14 +108,18 @@ func ScoreTerms[T any](spec Spec[T], item T, terms []string) (float64, bool) {
 	if len(terms) == 0 {
 		return 0, false
 	}
+
 	total := 0.0
+
 	for _, term := range terms {
 		score, _ := matchTerm(spec, item, Fold(term))
 		if score == 0 {
 			return 0, false
 		}
+
 		total += score
 	}
+
 	return total, true
 }
 
@@ -122,11 +133,14 @@ func IsIdentifierLike(text string) bool {
 		digits  int
 		total   int
 	)
+
 	for _, r := range text {
 		if unicode.IsSpace(r) {
 			continue
 		}
+
 		total++
+
 		switch {
 		case unicode.IsDigit(r):
 			digits++
@@ -134,6 +148,7 @@ func IsIdentifierLike(text string) bool {
 			letters++
 		}
 	}
+
 	return total > 0 && digits > 0 && letters*2 < total
 }
 
@@ -144,8 +159,10 @@ func RankHits[T any](hits []Hit[T]) []Hit[T] {
 		if hits[i].Score != hits[j].Score {
 			return hits[i].Score > hits[j].Score
 		}
+
 		return hits[i].ID < hits[j].ID
 	})
+
 	return hits
 }
 
@@ -158,6 +175,7 @@ func isProseWorthEmbedding(terms []string) bool {
 		return false
 	case 1:
 		runes := []rune(terms[0])
+
 		return len(runes) > shortTermRunes && !IsIdentifierLike(terms[0])
 	default:
 		return true

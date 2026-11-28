@@ -3924,7 +3924,7 @@ notesIndex, err := search.New(search.Spec[Note]{
 		{Name: "body", Weight: 0.2, Value: func(n Note) string { return n.Body }},
 	},
 	Keys: []string{"status"}, // status:open is the product's token, never searched as text
-}, search.NoEngine, notes) // no engine: the lexical scan
+}, search.NoEngine(), notes) // no engine: the lexical scan
 if err != nil {
 	return err
 }
@@ -3952,7 +3952,7 @@ What the contract holds:
 - **One ranking rule.** every term must match; exact beats word prefix beats
   substring; each times the field weight. The same rule runs in the browser
   (`search.BuildStaticIndex` writes compact JSON for the client matcher).
-- **Operators supply embeddings.** `search.NoEngine` and a nil embedder
+- **Operators supply embeddings.** `search.NoEngine()` and a nil embedder
   mean lexical only, a complete product. Nothing leaves the machine.
 - **SQL is not hand-escaped.** `search.LikePattern` and `search.FTS5Query`
   exist for stores that are not engines yet.

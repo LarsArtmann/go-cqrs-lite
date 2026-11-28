@@ -13,19 +13,20 @@ import (
 var _ = Describe("Search", func() {
 	var (
 		index  *search.Index[Note]
-		engine search.Engine = search.NoEngine
+		engine = search.NoEngine()
 		spec   search.Spec[Note]
 		result search.Result[Note]
 		err    error
 	)
 	searchFor := func(query string) search.Result[Note] {
 		result, err = index.Search(context.Background(), search.Request{Query: query})
+
 		return result
 	}
 	idsOf := func() []string { return ids(result.Data) }
 
 	BeforeEach(func() {
-		engine = search.NoEngine
+		engine = search.NoEngine()
 		spec = testSpec()
 	})
 
@@ -62,7 +63,7 @@ var _ = Describe("Search", func() {
 		It("keeps a declared operator token out of the text search", func() {
 			operator, buildErr := search.New(
 				search.Spec[Note]{Fields: testSpec().Fields, Keys: []string{"status"}},
-				search.NoEngine,
+				search.NoEngine(),
 				notes(),
 			)
 			Expect(buildErr).NotTo(HaveOccurred())
@@ -86,7 +87,7 @@ var _ = Describe("Search", func() {
 		})
 
 		It("reports Truncated when the source caps its scan", func() {
-			capped, err := search.New(testSpec(), search.NoEngine, &cappedSource{Slice: notes(), cap: 1})
+			capped, err := search.New(testSpec(), search.NoEngine(), &cappedSource{Slice: notes(), cap: 1})
 			Expect(err).NotTo(HaveOccurred())
 			cappedResult, err := capped.Search(context.Background(), search.Request{})
 			Expect(err).NotTo(HaveOccurred())
@@ -99,7 +100,7 @@ var _ = Describe("Search", func() {
 		It("rejects an explicit mode the engine lacks", func() {
 			strict, buildErr := search.New(
 				search.Spec[Note]{Fields: spec.Fields, Mode: search.ModeVector},
-				search.NoEngine,
+				search.NoEngine(),
 				notes(),
 			)
 			Expect(buildErr).NotTo(HaveOccurred())
@@ -142,6 +143,7 @@ var _ = Describe("Search", func() {
 func autoIndex(eng search.Engine) *search.Index[Note] {
 	index, err := search.New(testSpec(), eng, notes())
 	Expect(err).NotTo(HaveOccurred())
+
 	return index
 }
 

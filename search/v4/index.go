@@ -31,10 +31,12 @@ func New[T any](spec Spec[T], eng Engine, src Source[T]) (*Index[T], error) {
 	if err := spec.Validate(); err != nil {
 		return nil, err
 	}
+
 	if eng == nil || src == nil {
 		return nil, errorfamily.NewRejection("search.no_engine_or_source",
-			"an index needs an engine and a source; use search.NoEngine for a deployment that only scans")
+			"an index needs an engine and a source; use search.NoEngine() for a deployment that only scans")
 	}
+
 	return &Index[T]{
 		spec:   spec.clone(),
 		engine: eng,
@@ -58,13 +60,16 @@ func (ix *Index[T]) Search(ctx context.Context, req Request) (Result[T], error) 
 	if err != nil {
 		return Result[T]{}, err
 	}
+
 	sortKey, descending, err := ix.resolveSort(normalized.Sort)
 	if err != nil {
 		return Result[T]{}, err
 	}
+
 	terms, _ := ix.spec.Tokens(normalized.Query)
 	page := query.NewPagination(normalized.Page.Page, normalized.Page.PageSize)
 	caps := ix.engine.Capabilities()
+
 	via, err := Tier(ix.spec.Mode, terms, caps, ix.engine.Embedder() != nil)
 	if err != nil {
 		return Result[T]{}, err
@@ -74,11 +79,14 @@ func (ix *Index[T]) Search(ctx context.Context, req Request) (Result[T], error) 
 		if run := ix.tiers[via]; run != nil {
 			return ix.runTier(ctx, normalized, terms, via, run, page, sortKey, descending)
 		}
+
 		if ix.spec.Mode != ModeAuto && ix.spec.Mode != ModeLexical {
 			return Result[T]{}, modeUnavailable(ix.spec.Mode, "no executor is registered for "+via.String())
 		}
+
 		return ix.scan(ctx, normalized, terms, ViaScan, true, page, sortKey, descending)
 	}
+
 	return ix.scan(ctx, normalized, terms, ViaScan, false, page, sortKey, descending)
 }
 
@@ -97,8 +105,10 @@ func (ix *Index[T]) runTier(
 	if err != nil {
 		return Result[T]{}, err
 	}
+
 	RankHits(hits)
 	applySort(hits, sortKey, descending, ix.spec.Sorts)
+
 	return ix.paginate(hits, via, false, false, page), nil
 }
 
@@ -115,7 +125,7 @@ func (ix *Index[T]) scan(
 ) (Result[T], error) {
 	listing, err := ix.source.List(ctx, req.Filters, ix.spec.scanLimit())
 	if err != nil {
-		return Result[T]{}, errorfamily.WrapOnce(err, errorfamily.Transient,
+		return Result[T]{}, errorfamily.Wrap(err, errorfamily.Transient,
 			"search.source_list", "the records could not be listed for this search; nothing changed, retry")
 	}
 
@@ -128,27 +138,35 @@ func (ix *Index[T]) scan(
 	for i, item := range listing.Items {
 		if i%checkEvery == 0 {
 			if err := ctx.Err(); err != nil {
-				return Result[T]{}, errorfamily.WrapOnce(err, errorfamily.Transient,
+				return Result[T]{}, errorfamily.Wrap(err, errorfamily.Transient,
 					"search.cancelled", "the search was cancelled before it finished; nothing changed, retry")
 			}
 		}
+
 		if len(terms) > 0 {
 			score, matched := ScoreTerms(ix.spec, item, folded)
 			if !matched {
 				continue
 			}
+
 			hits = append(hits, ix.hit(item, score, folded))
+
 			continue
 		}
-		hits = append(hits, Hit[T]{ID: ix.source.ID(item), Item: item})
+
+		hits = append(hits, Hit[T]{ID: ix.source.ID(item), Item: item, Score: 0, Snippet: nil})
 	}
+
 	if len(terms) > 0 {
 		RankHits(hits)
 	}
+
 	applySort(hits, sortKey, descending, ix.spec.Sorts)
+
 	if len(terms) == 0 {
 		via = ViaNone
 	}
+
 	return ix.paginate(hits, via, listing.Truncated, degraded, page), nil
 }
 
@@ -173,6 +191,7 @@ func (ix *Index[T]) snippet(item T, terms []string) []Segment {
 			return SnippetTerms(text, terms, 0)
 		}
 	}
+
 	return nil
 }
 
@@ -184,8 +203,9 @@ func (ix *Index[T]) paginate(
 	page query.Pagination,
 ) Result[T] {
 	total := uint(len(hits))
-	from := min(int(page.Offset()), len(hits))
+	from := min(page.Offset(), len(hits))
 	to := min(from+int(page.PageSize), len(hits))
+
 	return Result[T]{
 		PaginatedResult: query.NewPaginatedResult(hits[from:to], total, page),
 		Via:             via,
@@ -196,18 +216,23 @@ func (ix *Index[T]) paginate(
 
 // resolveSort validates the sort key and reports its direction. An empty key
 // means relevance. A leading minus selects descending order.
-func (ix *Index[T]) resolveSort(sortParam string) (key string, descending bool, err error) {
+func (ix *Index[T]) resolveSort(sortParam string) (string, bool, error) {
 	if sortParam == "" {
 		return "", false, nil
 	}
-	key = sortParam
+
+	key := sortParam
+
+	descending := false
 	if strings.HasPrefix(key, "-") {
 		key, descending = key[1:], true
 	}
+
 	if _, ok := ix.spec.Sorts[key]; !ok {
 		return "", false, rejectionWith(ErrUnknownSort,
 			"the sort key "+sortParam+" is not declared by the spec; sort by relevance or by a declared key")
 	}
+
 	return key, descending, nil
 }
 
@@ -217,12 +242,15 @@ func applySort[T any](hits []Hit[T], key string, descending bool, sorts map[stri
 	if key == "" {
 		return
 	}
+
 	less := sorts[key]
+
 	sort.SliceStable(hits, func(i, j int) bool {
 		order := less(hits[i].Item, hits[j].Item)
 		if descending {
 			return order > 0
 		}
+
 		return order < 0
 	})
 }

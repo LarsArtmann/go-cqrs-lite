@@ -136,7 +136,7 @@ func TestSpecCloneSharesNothing(t *testing.T) {
 		Fields: testSpec().Fields,
 		Keys:   []string{"status"},
 		Sorts:  map[string]func(a, b Note) int{"title": less},
-	}, search.NoEngine, search.Slice[Note]{})
+	}, search.NoEngine(), search.Slice[Note]{})
 	if err != nil {
 		t.Fatal(err)
 	}

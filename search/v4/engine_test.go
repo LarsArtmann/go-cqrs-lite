@@ -32,6 +32,7 @@ func (hashEmbedder) Embed(_ context.Context, texts []string) ([][]float32, error
 		}
 		out[i] = []float32{sum}
 	}
+
 	return out, nil
 }
 
@@ -124,7 +125,7 @@ func TestTierExplicitModesAreStrict(t *testing.T) {
 func TestNoEngine(t *testing.T) {
 	t.Parallel()
 
-	if search.NoEngine.Capabilities() != nothing || search.NoEngine.Embedder() != nil {
+	if search.NoEngine().Capabilities() != nothing || search.NoEngine().Embedder() != nil {
 		t.Fatal("NoEngine must offer nothing and embed nothing")
 	}
 }

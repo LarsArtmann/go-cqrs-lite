@@ -18,6 +18,7 @@ import (
 // spec's scan limit, and says so.
 type cappedSource struct {
 	search.Slice[Note]
+
 	cap    int
 	called bool
 	got    url.Values
@@ -30,15 +31,17 @@ func (s *cappedSource) List(ctx context.Context, filters url.Values, limit int) 
 		limit = s.cap
 	}
 	listing, err := s.Slice.List(ctx, filters, limit)
-	if len(s.Slice.Items) > s.cap {
+	if len(s.Items) > s.cap {
 		listing.Truncated = true
 	}
+
 	return listing, err
 }
 
 // failingSource is a Source whose List fails.
 type failingSource struct {
 	search.Slice[Note]
+
 	err error
 }
 
@@ -73,6 +76,7 @@ func newNotesIndex(t *testing.T, mutate func(*search.Spec[Note]), eng search.Eng
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
 	return index
 }
 
@@ -81,6 +85,7 @@ func ids(hits []search.Hit[Note]) []string {
 	for i, hit := range hits {
 		out[i] = hit.ID
 	}
+
 	return out
 }
 
@@ -90,10 +95,10 @@ func TestNewRejectsMissingPieces(t *testing.T) {
 	if _, err := search.New(testSpec(), nil, notes()); err == nil {
 		t.Error("New accepted a nil engine")
 	}
-	if _, err := search.New(testSpec(), search.NoEngine, nil); err == nil {
+	if _, err := search.New(testSpec(), search.NoEngine(), nil); err == nil {
 		t.Error("New accepted a nil source")
 	}
-	if _, err := search.New(search.Spec[Note]{}, search.NoEngine, notes()); !errors.Is(err, search.ErrNoFields) {
+	if _, err := search.New(search.Spec[Note]{}, search.NoEngine(), notes()); !errors.Is(err, search.ErrNoFields) {
 		t.Errorf("New with no fields = %v, want ErrNoFields", err)
 	}
 }
@@ -102,7 +107,7 @@ func TestIndexSpecIsACopy(t *testing.T) {
 	t.Parallel()
 
 	fields := testSpec().Fields
-	index, err := search.New(search.Spec[Note]{Fields: fields}, search.NoEngine, notes())
+	index, err := search.New(search.Spec[Note]{Fields: fields}, search.NoEngine(), notes())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -115,7 +120,7 @@ func TestIndexSpecIsACopy(t *testing.T) {
 func TestIndexEmptyQueryIsTheUnfilteredList(t *testing.T) {
 	t.Parallel()
 
-	result, err := newNotesIndex(t, nil, search.NoEngine).Search(context.Background(), search.Request{})
+	result, err := newNotesIndex(t, nil, search.NoEngine()).Search(context.Background(), search.Request{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,7 +149,7 @@ func TestIndexEmptyQueryIsTheUnfilteredList(t *testing.T) {
 func TestIndexOperatorTokensOnlyIsFacetsOnly(t *testing.T) {
 	t.Parallel()
 
-	index := newNotesIndex(t, func(s *search.Spec[Note]) { s.Keys = []string{"status"} }, search.NoEngine)
+	index := newNotesIndex(t, func(s *search.Spec[Note]) { s.Keys = []string{"status"} }, search.NoEngine())
 	result, err := index.Search(context.Background(), search.Request{Query: "status:done"})
 	if err != nil {
 		t.Fatal(err)
@@ -164,7 +169,7 @@ func TestIndexRanksTitleAboveBody(t *testing.T) {
 	result, err := newNotesIndex(
 		t,
 		nil,
-		search.NoEngine,
+		search.NoEngine(),
 	).Search(context.Background(), search.Request{Query: "big invoice"})
 	if err != nil {
 		t.Fatal(err)
@@ -186,7 +191,7 @@ func TestIndexRanksTitleAboveBody(t *testing.T) {
 func TestIndexPaging(t *testing.T) {
 	t.Parallel()
 
-	index := newNotesIndex(t, nil, search.NoEngine)
+	index := newNotesIndex(t, nil, search.NoEngine())
 	result, err := index.Search(context.Background(), search.Request{Page: query.Pagination{Page: 2, PageSize: 3}})
 	if err != nil {
 		t.Fatal(err)
@@ -204,7 +209,7 @@ func TestIndexReportsTruncatedScan(t *testing.T) {
 	t.Parallel()
 
 	source := &cappedSource{Slice: notes(), cap: 2}
-	index, err := search.New(testSpec(), search.NoEngine, source)
+	index, err := search.New(testSpec(), search.NoEngine(), source)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -227,7 +232,7 @@ func TestIndexPassesFacetsAndLimitUntouched(t *testing.T) {
 	t.Parallel()
 
 	source := &cappedSource{Slice: notes(), cap: 100}
-	index, err := search.New(search.Spec[Note]{Fields: testSpec().Fields, ScanLimit: 50}, search.NoEngine, source)
+	index, err := search.New(search.Spec[Note]{Fields: testSpec().Fields, ScanLimit: 50}, search.NoEngine(), source)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -255,7 +260,7 @@ func TestIndexSort(t *testing.T) {
 	index := newNotesIndex(
 		t,
 		func(s *search.Spec[Note]) { s.Sorts = map[string]func(a, b Note) int{"title": byTitle} },
-		search.NoEngine,
+		search.NoEngine(),
 	)
 
 	sorted, err := index.Search(context.Background(), search.Request{Sort: "title"})
@@ -294,22 +299,15 @@ func stringCompare(a, b string) int {
 func TestIndexRejectsBadRequests(t *testing.T) {
 	t.Parallel()
 
-	index := newNotesIndex(t, func(s *search.Spec[Note]) { s.MaxQueryRunes = 10 }, search.NoEngine)
+	index := newNotesIndex(t, func(s *search.Spec[Note]) { s.MaxQueryRunes = 10 }, search.NoEngine())
 	cases := map[string]search.Request{
 		"too long": {Query: "abcdefghijk"},
 		"control":  {Query: "a\x01b"},
-		"bad page": {Page: query.Pagination{Page: 0, PageSize: 0}, Query: "invoice"},
 	}
 	for name, req := range cases {
-		req := req
 		t.Run(name, func(t *testing.T) {
-			if name == "bad page" {
-				result, err := index.Search(context.Background(), req)
-				if err != nil || result.Page != 1 || result.PageSize != 20 {
-					t.Fatalf("a zero page should default, got %v page %d/%d", err, result.Page, result.PageSize)
-				}
-				return
-			}
+			t.Parallel()
+
 			if _, err := index.Search(context.Background(), req); err == nil {
 				t.Fatal("Search accepted an invalid request")
 			}
@@ -317,11 +315,24 @@ func TestIndexRejectsBadRequests(t *testing.T) {
 	}
 }
 
+func TestIndexZeroPageDefaults(t *testing.T) {
+	t.Parallel()
+
+	index := newNotesIndex(t, nil, search.NoEngine())
+	result, err := index.Search(context.Background(), search.Request{
+		Query: "invoice",
+		Page:  query.Pagination{},
+	})
+	if err != nil || result.Page != 1 || result.PageSize != 20 {
+		t.Fatalf("a zero page should default, got %v page %d/%d", err, result.Page, result.PageSize)
+	}
+}
+
 func TestIndexSourceErrorWraps(t *testing.T) {
 	t.Parallel()
 
 	boom := errors.New("disk on fire")
-	index, err := search.New(testSpec(), search.NoEngine, failingSource{err: boom})
+	index, err := search.New(testSpec(), search.NoEngine(), failingSource{err: boom})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -343,7 +354,7 @@ func TestIndexStopsOnCancelledContext(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	index := newNotesIndex(t, nil, search.NoEngine)
+	index := newNotesIndex(t, nil, search.NoEngine())
 	if _, err := index.Search(ctx, search.Request{}); !errors.Is(err, context.Canceled) {
 		t.Fatalf("Search on a cancelled context = %v; want context.Canceled", err)
 	}
@@ -411,13 +422,14 @@ func idsOf(items []Note) []string {
 	for i, item := range items {
 		out[i] = item.ID
 	}
+
 	return out
 }
 
 func TestIndexIsSafeForConcurrentUse(t *testing.T) {
 	t.Parallel()
 
-	index := newNotesIndex(t, nil, search.NoEngine)
+	index := newNotesIndex(t, nil, search.NoEngine())
 	const routines = 16
 	errs := make(chan error, routines)
 	for i := range routines {
@@ -429,6 +441,7 @@ func TestIndexIsSafeForConcurrentUse(t *testing.T) {
 				)
 				if err != nil || result.TotalCount != 3 {
 					errs <- errors.New("routine " + strconv.Itoa(i) + " step " + strconv.Itoa(j))
+
 					return
 				}
 			}

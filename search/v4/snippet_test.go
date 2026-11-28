@@ -99,10 +99,10 @@ func TestSnippetCutsOnRuneBoundaries(t *testing.T) {
 	texts := []string{
 		"Zażółć gęślą jaźń i szukaj recherche w Świętokrzyskiem",
 		"Über den Großen Ärmelkanal fliegt ein Strauß mit Rückflugticket",
-		"日本語のテキストに検索語がある Lorem ipsum dolor sit amet",
+		"το κείμενο έχει μια αναζήτηση εδώ Lorem ipsum dolor sit amet",
 	}
 	for _, text := range texts {
-		for _, term := range []string{"gęślą", "ärmel", "検索", "jaźń"} {
+		for _, term := range []string{"gęślą", "ärmel", "αναζήτηση", "jaźń"} {
 			for radius := 1; radius < 12; radius++ {
 				got := search.Snippet(text, term, radius)
 				for _, segment := range got {
@@ -126,9 +126,11 @@ func TestSnippetIsTheWindow(t *testing.T) {
 		for radius := 0; radius < 40; radius += 3 {
 			got := search.Snippet(text, term, radius)
 			joined := ""
+			var joinedSb129 strings.Builder
 			for _, segment := range got {
-				joined += segment.Text
+				joinedSb129.WriteString(segment.Text)
 			}
+			joined += joinedSb129.String()
 			trimmed := strings.Trim(joined, "…")
 			if !strings.Contains(text, trimmed) {
 				t.Fatalf("Snippet(%q, %d) = %q is not a slice of the text", term, radius, joined)

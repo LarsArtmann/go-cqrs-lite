@@ -75,6 +75,7 @@ func rejectionWith(sentinel error, detail string) error {
 	if code := errorfamily.Code(sentinel); code != "" {
 		return errorfamily.NewRejection(code, detail)
 	}
+
 	return sentinel
 }
 

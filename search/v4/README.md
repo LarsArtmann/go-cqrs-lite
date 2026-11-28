@@ -10,7 +10,7 @@ index, err := search.New(search.Spec[Note]{
 		{Name: "title", Weight: 1, Value: func(n Note) string { return n.Title }},
 		{Name: "body", Weight: 0.2, Value: func(n Note) string { return n.Body }},
 	},
-}, search.NoEngine, source) // or an engine that offers full-text search
+}, search.NoEngine(), source) // or an engine that offers full-text search
 if err != nil {
 	return err
 }
@@ -45,7 +45,7 @@ exist, else the best lexical tier. An explicit mode is strict.
 - `Score`, `RankHits`, `Tokenize`, `Fold`, `IsIdentifierLike`.
 - `LikePattern`, `EscapeLike`, `FTS5Query`, `Snippet`, `SnippetTerms`.
 - `BuildStaticIndex`, `StaticIndex.WriteFile`, `LoadStaticIndex`.
-- `Slice` (a `Source` over records in memory) and `NoEngine`.
+- `Slice` (a `Source` over records in memory) and `NoEngine()`.
 
 The executors for the full-text, vector and hybrid tiers arrive with the
 engine work; until then, Auto steps down to the scan and sets `Degraded`.

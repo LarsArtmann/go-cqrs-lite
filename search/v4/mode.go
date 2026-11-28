@@ -24,31 +24,31 @@ const (
 	ModeHybrid
 )
 
-// modeNames keeps [Mode.String] and [Mode.IsValid] in step.
-var modeNames = [...]string{"auto", "lexical", "fulltext", "vector", "hybrid"}
-
 // String returns the lowercase name of the mode.
 func (m Mode) String() string {
 	if m > ModeHybrid {
 		return "mode(" + strconv.Itoa(int(m)) + ")"
 	}
-	return modeNames[m]
+
+	switch m {
+	case ModeAuto:
+		return "auto"
+	case ModeLexical:
+		return "lexical"
+	case ModeFullText:
+		return "fulltext"
+	case ModeVector:
+		return "vector"
+	case ModeHybrid:
+		return "hybrid"
+	default:
+		return "mode(" + strconv.Itoa(int(m)) + ")"
+	}
 }
 
 // IsValid reports whether m is one of the declared modes.
 func (m Mode) IsValid() bool {
 	return m <= ModeHybrid
-}
-
-// needsFullText reports whether the mode cannot run without a full-text index.
-func (m Mode) needsFullText() bool {
-	return m == ModeFullText || m == ModeHybrid
-}
-
-// needsEmbedder reports whether the mode cannot run without an embedder and
-// a vector index.
-func (m Mode) needsEmbedder() bool {
-	return m == ModeVector || m == ModeHybrid
 }
 
 // Via names the tier that produced a [Result]. Client-side search (tier 0)
@@ -69,15 +69,26 @@ const (
 	ViaHybrid
 )
 
-// viaNames keeps [Via.String] and [Via.IsValid] in step.
-var viaNames = [...]string{"none", "scan", "fulltext", "vector", "hybrid"}
-
 // String returns the lowercase name of the tier.
 func (v Via) String() string {
 	if v > ViaHybrid {
 		return "via(" + strconv.Itoa(int(v)) + ")"
 	}
-	return viaNames[v]
+
+	switch v {
+	case ViaNone:
+		return "none"
+	case ViaScan:
+		return "scan"
+	case ViaFullText:
+		return "fulltext"
+	case ViaVector:
+		return "vector"
+	case ViaHybrid:
+		return "hybrid"
+	default:
+		return "via(" + strconv.Itoa(int(v)) + ")"
+	}
 }
 
 // IsValid reports whether v is one of the declared tiers.

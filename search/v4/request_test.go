@@ -128,13 +128,14 @@ func TestTokenize(t *testing.T) {
 func TestSpecTokensUsesDeclaredKeys(t *testing.T) {
 	t.Parallel()
 
-	terms, tokens := testSpec().Tokens("status:open invoice")
+	_, tokens := testSpec().Tokens("status:open invoice")
 	if len(tokens) != 0 {
 		t.Fatalf("a spec without keys split an operator: %v", tokens)
 	}
+
 	spec := testSpec()
 	spec.Keys = []string{"status"}
-	terms, tokens = spec.Tokens("status:open invoice")
+	terms, tokens := spec.Tokens("status:open invoice")
 	if !reflect.DeepEqual(terms, []string{"invoice"}) ||
 		!reflect.DeepEqual(tokens, map[string][]string{"status": {"open"}}) {
 		t.Fatalf("terms %q tokens %v", terms, tokens)

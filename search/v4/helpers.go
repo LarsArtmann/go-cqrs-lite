@@ -34,20 +34,25 @@ func FTS5Query(query string, phrase bool) (string, error) {
 	if query == "" {
 		return "", nil
 	}
+
 	if strings.ContainsFunc(query, unicode.IsControl) {
 		return "", ErrQueryInvalid
 	}
+
 	if length := len([]rune(query)); length > fts5MaxQueryRunes {
 		return "", rejectionWith(ErrQueryTooLong,
 			"the search text is "+strconv.Itoa(length)+" characters; the limit is "+strconv.Itoa(fts5MaxQueryRunes))
 	}
+
 	if phrase {
 		return fts5Quote(query), nil
 	}
+
 	words := strings.Fields(query)
 	for i, word := range words {
 		words[i] = fts5Quote(word)
 	}
+
 	return strings.Join(words, " AND "), nil
 }
 

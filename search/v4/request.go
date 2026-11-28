@@ -46,15 +46,19 @@ func (r Request) Normalize(limit int) (Request, error) {
 	if err != nil {
 		return Request{}, err
 	}
+
 	normalized := r
+
 	normalized.Query = collapseWhitespace(r.Query)
 	if strings.ContainsFunc(normalized.Query, unicode.IsControl) {
 		return Request{}, ErrQueryInvalid
 	}
+
 	if length := len([]rune(normalized.Query)); length > limit {
 		return Request{}, rejectionWith(ErrQueryTooLong,
 			"the search text is "+strconv.Itoa(length)+" characters; the limit is "+strconv.Itoa(limit))
 	}
+
 	return normalized, nil
 }
 
@@ -66,25 +70,32 @@ func collapseWhitespace(text string) string {
 		quoted bool
 		space  bool
 	)
+
 	for _, r := range text {
 		switch {
 		case r == '"':
 			quoted = !quoted
+
 			if space {
 				out.WriteByte(' ')
+
 				space = false
 			}
+
 			out.WriteRune(r)
 		case unicode.IsSpace(r) && !quoted:
 			space = out.Len() > 0
 		default:
 			if space {
 				out.WriteByte(' ')
+
 				space = false
 			}
+
 			out.WriteRune(r)
 		}
 	}
+
 	return out.String()
 }
 
@@ -96,11 +107,17 @@ func collapseWhitespace(text string) string {
 // unknown keys are free text, and what a key means is the product's business.
 // Double quotes group words, so status:"in progress" is one token and
 // "big invoice" is two terms held together as a phrase.
-func Tokenize(query string, keys ...string) (terms []string, tokens map[string][]string) {
+func Tokenize(query string, keys ...string) ([]string, map[string][]string) {
+	var (
+		terms  []string
+		tokens map[string][]string
+	)
+
 	known := make(map[string]struct{}, len(keys))
 	for _, key := range keys {
 		known[strings.ToLower(key)] = struct{}{}
 	}
+
 	for _, word := range splitWords(query) {
 		key, value, ok := cutOperator(word)
 		if ok {
@@ -108,12 +125,16 @@ func Tokenize(query string, keys ...string) (terms []string, tokens map[string][
 				if tokens == nil {
 					tokens = make(map[string][]string)
 				}
+
 				tokens[key] = append(tokens[key], value)
+
 				continue
 			}
 		}
+
 		terms = append(terms, word)
 	}
+
 	return terms, tokens
 }
 
@@ -125,6 +146,7 @@ func splitWords(query string) []string {
 		quoted  bool
 		active  bool
 	)
+
 	for _, r := range query {
 		switch {
 		case r == '"':
@@ -134,34 +156,42 @@ func splitWords(query string) []string {
 			if active {
 				words = append(words, current.String())
 			}
+
 			current.Reset()
+
 			active = false
 		default:
 			current.WriteRune(r)
+
 			active = true
 		}
 	}
+
 	if active {
 		words = append(words, current.String())
 	}
+
 	return words
 }
 
 // cutOperator splits key:value and reports whether the word is a well-formed
 // operator. A malformed operator demotes to a term.
-func cutOperator(word string) (key, value string, ok bool) {
+func cutOperator(word string) (string, string, bool) {
 	key, value, found := strings.Cut(word, ":")
 	if !found || value == "" {
 		return "", "", false
 	}
+
 	key = strings.ToLower(key)
 	if key == "" {
 		return "", "", false
 	}
+
 	for _, r := range key {
 		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' && r != '-' {
 			return "", "", false
 		}
 	}
+
 	return key, value, true
 }

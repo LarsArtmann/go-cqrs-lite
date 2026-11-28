@@ -20,17 +20,23 @@ type Slice[T any] struct {
 // List returns up to limit records that satisfy the facets.
 func (s Slice[T]) List(_ context.Context, filters url.Values, limit int) (Listing[T], error) {
 	var items []T
+
 	truncated := false
+
 	for _, item := range s.Items {
 		if s.Match != nil && !s.Match(item, filters) {
 			continue
 		}
+
 		if len(items) == limit {
 			truncated = true
+
 			break
 		}
+
 		items = append(items, item)
 	}
+
 	return Listing[T]{Items: items, Truncated: truncated}, nil
 }
 
@@ -40,12 +46,15 @@ func (s Slice[T]) ByIDs(_ context.Context, ids []string) ([]T, error) {
 	for _, id := range ids {
 		wanted[id] = struct{}{}
 	}
+
 	var items []T
+
 	for _, item := range s.Items {
 		if _, ok := wanted[s.Identify(item)]; ok {
 			items = append(items, item)
 		}
 	}
+
 	return items, nil
 }
 

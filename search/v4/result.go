@@ -15,7 +15,8 @@ func Plain(text string) []Segment {
 	if text == "" {
 		return nil
 	}
-	return []Segment{{Text: text}}
+
+	return []Segment{{Text: text, Marked: false}}
 }
 
 // Hit is one ranked record.
@@ -36,6 +37,7 @@ type Hit[T any] struct {
 // [query.PaginatedResult] and adds what the search decided.
 type Result[T any] struct {
 	query.PaginatedResult[Hit[T]]
+
 	// Via names the tier that ran.
 	Via Via
 	// Truncated is true when the scan tier stopped at its limit before it

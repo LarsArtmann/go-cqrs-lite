@@ -5143,6 +5143,7 @@ search/v4/func IsIdentifierLike
 search/v4/func LikePattern
 search/v4/func LoadStaticIndex
 search/v4/func New
+search/v4/func NoEngine
 search/v4/func Plain
 search/v4/func RankHits
 search/v4/func Score
@@ -5194,8 +5195,6 @@ search/v4/var ErrNoFields
 search/v4/var ErrQueryInvalid
 search/v4/var ErrQueryTooLong
 search/v4/var ErrUnknownSort
-search/v4/var NoEngine
-search/v4/var None
 signing/v4/const MetadataKey
 signing/v4/const MinimumKeyLength
 signing/v4/func AttachSignature

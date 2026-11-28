@@ -46,12 +46,15 @@ func corpusCases() []corpusCase {
 		for _, pair := range pairs {
 			out = append(out, corpusDoc{ID: pair[0], Fields: map[string]string{"title": pair[1]}})
 		}
+
 		return out
 	}
 	withBody := func(doc corpusDoc, body string) corpusDoc {
 		doc.Fields["body"] = body
+
 		return doc
 	}
+
 	return []corpusCase{
 		{
 			Name: "exact beats word prefix beats substring", Query: "inv", Fields: fields,
@@ -169,7 +172,7 @@ func searchStaticItem(t *testing.T, tc corpusCase, query string) []string {
 		})
 	}
 	source := search.Slice[corpusDoc]{Items: tc.Docs, Identify: func(doc corpusDoc) string { return doc.ID }}
-	index, err := search.New(search.Spec[corpusDoc]{Fields: fields}, search.NoEngine, source)
+	index, err := search.New(search.Spec[corpusDoc]{Fields: fields}, search.NoEngine(), source)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,6 +184,7 @@ func searchStaticItem(t *testing.T, tc corpusCase, query string) []string {
 	for i, hit := range result.Data {
 		got[i] = hit.ID
 	}
+
 	return got
 }
 

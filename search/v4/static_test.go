@@ -40,7 +40,11 @@ func TestBuildStaticIndex(t *testing.T) {
 	if _, empty := index.Items[1].Fields["body"]; empty {
 		t.Fatal("an empty value was emitted")
 	}
-	encoded, _ := json.Marshal(index)
+	encoded, err := json.Marshal(index)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	golden := filepath.Join("testdata", "static_index.golden")
 	if *flagUpdate {
 		if err := os.WriteFile(golden, append(encoded, '\n'), 0o644); err != nil {
@@ -60,6 +64,7 @@ func trimNewline(b []byte) []byte {
 	if len(b) > 0 && b[len(b)-1] == '\n' {
 		return b[:len(b)-1]
 	}
+
 	return b
 }
 
